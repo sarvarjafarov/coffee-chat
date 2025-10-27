@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Copy composer files first to leverage Docker cache
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader || ./vendor/bin/composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
 # Copy full application source and rebuild optimised autoload map
 COPY . .
@@ -52,7 +52,7 @@ COPY --from=frontend /app/public/build /var/www/html/public/build
 
 # Ensure storage and cache directories are writable
 RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+    && chmod -R 775 storage/bootstrap/cache
 
 ENV PORT=8080
 EXPOSE 8080
