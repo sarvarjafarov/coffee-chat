@@ -43,7 +43,7 @@ RUN apt-get update \
 
 # Configure Apache to serve the Laravel public directory
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/default-ssl.conf \
+RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/default-ssl.conf \
     && a2enmod rewrite
 
 WORKDIR /var/www/html
@@ -62,4 +62,4 @@ ENV PORT=8080
 EXPOSE 8080
 
 # Adjust Apache to listen on the PORT provided by Render before starting
-CMD ["/bin/sh", "-c", "sed -i 's/Listen 80/Listen ${PORT}/' /etc/apache2/ports.conf && apache2-foreground"]
+CMD ["/bin/sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT}/\" /etc/apache2/ports.conf && apache2-foreground"]
