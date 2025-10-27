@@ -56,7 +56,7 @@ COPY --from=frontend /app/public/build /var/www/html/public/build
 
 # Ensure storage and cache directories are writable
 RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage/bootstrap/cache
+    && chmod -R 775 storage bootstrap/cache
 
 ENV PORT=8080
 EXPOSE 8080
