@@ -2,8 +2,9 @@
 FROM composer:2 AS vendor
 WORKDIR /app
 
-# Copy composer manifest and artisan early to leverage cache for dependencies
+# Copy composer manifest, artisan, and bootstrap app early to leverage cache for dependencies
 COPY composer.json composer.lock artisan ./
+COPY bootstrap ./bootstrap
 RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
 # Copy full application source and rebuild optimised autoload map
