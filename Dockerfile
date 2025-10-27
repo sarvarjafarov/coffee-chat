@@ -43,7 +43,9 @@ RUN apt-get update \
 
 # Configure Apache to serve the Laravel public directory
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN printf '<VirtualHost *:80>\n    DocumentRoot %s\n    DirectoryIndex index.php index.html\n    <Directory %s>\n        Options -Indexes +FollowSymLinks\n        AllowOverride All\n        Require all granted\n        DirectoryIndex index.php index.html\n    </Directory>\n    ErrorLog ${APACHE_LOG_DIR}/error.log\n    CustomLog ${APACHE_LOG_DIR}/access.log combined\n</VirtualHost>\n' "${APACHE_DOCUMENT_ROOT}" "${APACHE_DOCUMENT_ROOT}" > /etc/apache2/sites-available/000-default.conf \
+RUN a2dissite 000-default \
+    && printf '<VirtualHost *:80>\n    ServerAdmin webmaster@localhost\n    DocumentRoot %s\n    DirectoryIndex index.php index.html\n    <Directory %s>\n        Options -Indexes +FollowSymLinks\n        AllowOverride All\n        Require all granted\n    </Directory>\n    ErrorLog ${APACHE_LOG_DIR}/error.log\n    CustomLog ${APACHE_LOG_DIR}/access.log combined\n</VirtualHost>\n' "${APACHE_DOCUMENT_ROOT}" "${APACHE_DOCUMENT_ROOT}" > /etc/apache2/sites-available/laravel.conf \
+    && a2ensite laravel \
     && sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/default-ssl.conf \
     && a2enmod rewrite
 
