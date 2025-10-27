@@ -26,6 +26,8 @@ class DatabaseSeeder extends Seeder
             SeoMetaSeeder::class,
             WorkspaceFieldSeeder::class,
             TeamFinderDemoSeeder::class,
+            SiteSettingSeeder::class,
+            SiteMenuItemSeeder::class,
         ]);
 
         $admin = User::query()->updateOrCreate(

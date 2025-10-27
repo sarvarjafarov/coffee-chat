@@ -31,6 +31,7 @@ class PageComponentController extends Controller
         return view('admin.pages.components.create', [
             'page' => $page,
             'component' => new PageComponent(['page_id' => $page->id]),
+            'metaJson' => null,
             'styleJson' => null,
         ]);
     }
@@ -109,44 +110,26 @@ class PageComponentController extends Controller
             'subtitle' => ['nullable', 'string'],
             'content' => ['nullable', 'string'],
             'media' => ['nullable', 'string'],
-            'meta' => ['nullable', 'string'],
-            'style' => ['nullable', 'string'],
+            'meta' => ['nullable'],
+            'style' => ['nullable'],
             'position' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $meta = $data['meta'] ?? null;
-        $style = $data['style'] ?? null;
         unset($data['meta'], $data['style']);
 
-        if ($meta !== null && trim($meta) !== '') {
-            $decoded = json_decode($meta, true);
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw ValidationException::withMessages([
-                    'meta' => 'Meta must be valid JSON. Error: ' . json_last_error_msg(),
-                ]);
-            }
-
-            $data['meta'] = $decoded;
-        } else {
-            $data['meta'] = null;
-        }
+        $data['meta'] = $this->resolveStructuredInput(
+            $request->input('meta_json'),
+            $request->input('meta'),
+            'meta'
+        );
 
         $data['position'] = $data['position'] ?? ($component?->position ?? 0);
 
-        if ($style !== null && trim($style) !== '') {
-            $decoded = json_decode($style, true);
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw ValidationException::withMessages([
-                    'style' => 'Style must be valid JSON. Error: ' . json_last_error_msg(),
-                ]);
-            }
-
-            $data['style'] = $decoded;
-        } else {
-            $data['style'] = null;
-        }
+        $data['style'] = $this->resolveStructuredInput(
+            $request->input('style_json'),
+            $request->input('style'),
+            'style'
+        );
 
         return $data;
     }
@@ -156,5 +139,96 @@ class PageComponentController extends Controller
         if ($component->page_id !== $page->id) {
             abort(404);
         }
+    }
+
+    protected function resolveStructuredInput(?string $json, $fallback, string $field): ?array
+    {
+        if (is_string($json) && trim($json) !== '') {
+            $decoded = json_decode($json, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw ValidationException::withMessages([
+                    "{$field}_json" => 'JSON is invalid: ' . json_last_error_msg(),
+                ]);
+            }
+
+            $clean = $this->cleanArray($decoded);
+
+            return $clean === [] ? null : $clean;
+        }
+
+        if (is_array($fallback)) {
+            $clean = $this->cleanArray($fallback);
+
+            return $clean === [] ? null : $clean;
+        }
+
+        if (is_string($fallback) && trim($fallback) !== '') {
+            $decoded = json_decode($fallback, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw ValidationException::withMessages([
+                    $field => 'JSON is invalid: ' . json_last_error_msg(),
+                ]);
+            }
+
+            $clean = $this->cleanArray($decoded);
+
+            return $clean === [] ? null : $clean;
+        }
+
+        return null;
+    }
+
+    protected function cleanArray(array $value): array
+    {
+        $clean = [];
+
+        foreach ($value as $key => $item) {
+            if (is_array($item)) {
+                $nested = $this->cleanArray($item);
+
+                if ($nested !== []) {
+                    $clean[$key] = $nested;
+                }
+
+                continue;
+            }
+
+            if (is_string($item)) {
+                $item = trim($item);
+            }
+
+            if ($item === '' || $item === null) {
+                continue;
+            }
+
+            $clean[$key] = $item;
+        }
+
+        if ($clean === []) {
+            return [];
+        }
+
+        if ($this->isSequentialArray($clean)) {
+            $clean = array_values($clean);
+        }
+
+        return $clean;
+    }
+
+    protected function isSequentialArray(array $array): bool
+    {
+        $expected = 0;
+
+        foreach ($array as $key => $value) {
+            if ((string) $key !== (string) $expected) {
+                return false;
+            }
+
+            $expected++;
+        }
+
+        return true;
     }
 }

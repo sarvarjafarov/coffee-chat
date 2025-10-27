@@ -10,6 +10,11 @@
     </div>
 
     <div class="workspace-card workspace-section workspace-form">
+        @if(session('status'))
+            <div class="alert alert-success mb-4">
+                {{ session('status') }}
+            </div>
+        @endif
         @if($errors->any())
             <div class="alert alert-danger mb-4">
                 <ul class="mb-0">

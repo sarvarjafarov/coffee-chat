@@ -22,10 +22,16 @@ class SeoMeta extends Model
         'og_image',
         'twitter_card',
         'meta',
+        'meta_tags',
+        'media',
+        'schema',
     ];
 
     protected $casts = [
         'meta' => 'array',
+        'meta_tags' => 'array',
+        'media' => 'array',
+        'schema' => 'array',
     ];
 
     public function page(): BelongsTo

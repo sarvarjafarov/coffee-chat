@@ -16,6 +16,26 @@
             $ogDescription = $seo['og_description'] ?? $pageDescription;
             $ogImage = $seo['og_image'] ?? null;
             $twitterCard = $seo['twitter_card'] ?? 'summary_large_image';
+            $metaTags = collect(data_get($seo, 'meta_tags', []));
+            $mediaItems = collect(data_get($seo, 'media', []));
+            $schemaEntries = collect(data_get($seo, 'schema', []));
+            $advancedMeta = data_get($seo, 'meta');
+
+            if (is_array($advancedMeta)) {
+                $metaTags = $metaTags->concat(collect(data_get($advancedMeta, 'meta_tags', [])));
+                $schemaEntries = $schemaEntries->concat(
+                    collect(data_get($advancedMeta, 'schema', []))->map(function ($entry) {
+                        return [
+                            'type' => data_get($entry, 'type', 'application/ld+json'),
+                            'payload' => data_get($entry, 'payload', $entry),
+                        ];
+                    })
+                );
+            }
+
+            $additionalLinks = is_array($advancedMeta)
+                ? collect(data_get($advancedMeta, 'links', []))
+                : collect();
         @endphp
 
         <title>{{ $pageTitle }}</title>
@@ -46,20 +66,118 @@
             <meta name="twitter:image" content="{{ $ogImage }}">
         @endif
 
+        @foreach($metaTags as $tag)
+            @php
+                $tagContent = data_get($tag, 'content');
+                if (! filled($tagContent)) {
+                    continue;
+                }
+                $tagName = data_get($tag, 'name');
+                $tagProperty = data_get($tag, 'property');
+                $tagHttpEquiv = data_get($tag, 'http_equiv');
+            @endphp
+            <meta
+                @if($tagName) name="{{ $tagName }}" @endif
+                @if($tagProperty) property="{{ $tagProperty }}" @endif
+                @if($tagHttpEquiv) http-equiv="{{ $tagHttpEquiv }}" @endif
+                content="{{ $tagContent }}"
+            >
+        @endforeach
+
+        @foreach($mediaItems as $media)
+            @php
+                $mediaUrl = trim((string) data_get($media, 'url'));
+                if ($mediaUrl === '') {
+                    continue;
+                }
+                $mediaType = data_get($media, 'type', 'open_graph');
+                $mediaAlt = data_get($media, 'alt');
+                $mediaMime = data_get($media, 'mime_type');
+                $mediaWidth = data_get($media, 'width');
+                $mediaHeight = data_get($media, 'height');
+                $mediaSizes = data_get($media, 'sizes');
+            @endphp
+            @switch($mediaType)
+                @case('twitter')
+                    <meta name="twitter:image" content="{{ $mediaUrl }}">
+                    @if($mediaAlt)
+                        <meta name="twitter:image:alt" content="{{ $mediaAlt }}">
+                    @endif
+                    @break
+                @case('icon')
+                    <link rel="icon" href="{{ $mediaUrl }}" @if($mediaMime) type="{{ $mediaMime }}" @endif @if($mediaSizes) sizes="{{ $mediaSizes }}" @endif>
+                    @break
+                @case('apple_touch_icon')
+                    <link rel="apple-touch-icon" href="{{ $mediaUrl }}" @if($mediaSizes) sizes="{{ $mediaSizes }}" @endif>
+                    @break
+                @default
+                    <meta property="og:image" content="{{ $mediaUrl }}">
+                    @if($mediaAlt)
+                        <meta property="og:image:alt" content="{{ $mediaAlt }}">
+                    @endif
+                    @if($mediaMime)
+                        <meta property="og:image:type" content="{{ $mediaMime }}">
+                    @endif
+                    @if($mediaWidth)
+                        <meta property="og:image:width" content="{{ $mediaWidth }}">
+                    @endif
+                    @if($mediaHeight)
+                        <meta property="og:image:height" content="{{ $mediaHeight }}">
+                    @endif
+            @endswitch
+        @endforeach
+
+        @foreach($additionalLinks as $link)
+            @php
+                $rel = data_get($link, 'rel');
+                $href = data_get($link, 'href');
+                if (! $rel || ! $href) {
+                    continue;
+                }
+                $hreflang = data_get($link, 'hreflang');
+                $linkType = data_get($link, 'type');
+                $media = data_get($link, 'media');
+            @endphp
+            <link rel="{{ $rel }}" href="{{ $href }}" @if($hreflang) hreflang="{{ $hreflang }}" @endif @if($linkType) type="{{ $linkType }}" @endif @if($media) media="{{ $media }}" @endif>
+        @endforeach
+
+        @foreach($schemaEntries as $schemaEntry)
+            @php
+                $schemaPayload = data_get($schemaEntry, 'payload', $schemaEntry);
+                if (! is_array($schemaPayload)) {
+                    continue;
+                }
+                $schemaType = data_get($schemaEntry, 'type', 'application/ld+json');
+                $schemaJson = json_encode($schemaPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+            @endphp
+            @if($schemaJson)
+                <script type="{{ $schemaType }}">{!! $schemaJson !!}</script>
+            @endif
+        @endforeach
+
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+        @php
+            $themeSettings = isset($siteSettings) ? collect($siteSettings) : collect();
+            $themeAccentStart = data_get($themeSettings, 'accent_start', '#0ea5e9');
+            $themeAccentEnd = data_get($themeSettings, 'accent_end', '#2563eb');
+            $themeSurface = data_get($themeSettings, 'surface', '#f4fbff');
+            $themeSurfaceAlt = data_get($themeSettings, 'surface_alt', '#e6f6ff');
+            $themeTextPrimary = data_get($themeSettings, 'text_primary', '#0f172a');
+            $themeTextMuted = data_get($themeSettings, 'text_muted', '#475569');
+        @endphp
         <style>
             :root {
-                --surface: #f4fbff;
-                --surface-alt: #e6f6ff;
+                --surface: {{ $themeSurface }};
+                --surface-alt: {{ $themeSurfaceAlt }};
                 --surface-card: #ffffff;
-                --text-primary: #0f172a;
-                --text-muted: #475569;
-                --accent: #0ea5e9;
-                --accent-strong: #0284c7;
+                --text-primary: {{ $themeTextPrimary }};
+                --text-muted: {{ $themeTextMuted }};
+                --accent: {{ $themeAccentStart }};
+                --accent-strong: {{ $themeAccentEnd }};
                 --accent-soft: #d6f1ff;
                 --border-soft: #cfe5f2;
             }
@@ -380,19 +498,32 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="mainNav">
+                @php($menuItems = \App\Models\SiteMenuItem::where('is_visible', true)->orderBy('sort_order')->orderBy('label')->get())
                 <ul class="navbar-nav align-items-lg-center gap-lg-2">
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Platform</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('stories') ? 'active' : '' }}" href="{{ route('stories') }}">Solutions</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('insights') ? 'active' : '' }}" href="{{ route('insights') }}">Insights</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('mba.jobs') ? 'active' : '' }}" href="{{ route('mba.jobs') }}">MBA Full-time Jobs</a>
-                    </li>
+                    @forelse($menuItems as $item)
+                        <li class="nav-item">
+                            <a class="nav-link {{ url()->current() === url($item->url) ? 'active' : '' }}" href="{{ url($item->url) }}">{{ $item->label }}</a>
+                        </li>
+                    @empty
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Platform</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('stories') ? 'active' : '' }}" href="{{ route('stories') }}">Solutions</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('insights') ? 'active' : '' }}" href="{{ route('insights') }}">Insights</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('pricing') ? 'active' : '' }}" href="{{ route('pricing') }}">Pricing</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('network-health*') ? 'active' : '' }}" href="{{ route('network-health') }}">Network health</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('mba.jobs') ? 'active' : '' }}" href="{{ route('mba.jobs') }}">MBA Full-time Jobs</a>
+                        </li>
+                    @endforelse
                     @auth
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('workspace.*') ? 'active' : '' }}" href="{{ route('workspace.coffee-chats.index') }}">Workspace</a>

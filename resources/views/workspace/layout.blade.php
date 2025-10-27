@@ -283,6 +283,8 @@
         }
     </style>
 
+    @php($customMenuItems = \App\Models\WorkspaceMenuItem::whereNull('user_id')->orderBy('label')->get())
+
     <div class="workspace-shell">
         <nav class="workspace-nav">
             <a href="{{ route('workspace.coffee-chats.index') }}" class="{{ request()->routeIs('workspace.coffee-chats.*') ? 'active' : '' }}">
@@ -297,6 +299,10 @@
                 <i class="mdi mdi-chart-line"></i>
                 <span>Analytics</span>
             </a>
+            <a href="{{ route('pricing') }}" class="{{ request()->routeIs('pricing') ? 'active' : '' }}">
+                <i class="mdi mdi-currency-usd"></i>
+                <span>Pricing</span>
+            </a>
             <a href="{{ route('workspace.team-finder.index') }}" class="{{ request()->routeIs('workspace.team-finder.*') ? 'active' : '' }}">
                 <i class="mdi mdi-account-multiple-outline"></i>
                 <span>Team finder</span>
@@ -305,6 +311,12 @@
                 <i class="mdi mdi-account-circle-outline"></i>
                 <span>Profile</span>
             </a>
+            @foreach($customMenuItems as $item)
+                <a href="{{ $item->url }}" target="_blank" rel="noopener">
+                    <i class="mdi mdi-open-in-new"></i>
+                    <span>{{ $item->label }}</span>
+                </a>
+            @endforeach
         </nav>
 
         <div>

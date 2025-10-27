@@ -111,6 +111,34 @@
             color: var(--accent);
         }
 
+        .team-finder-actions form {
+            display: inline-flex;
+            margin: 0;
+        }
+
+        .team-finder-actions button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-weight: 600;
+            border-radius: 999px;
+            border: 1px solid rgba(14,165,233,0.3);
+            background: rgba(14,165,233,0.1);
+            color: rgba(14,165,233,0.9);
+            padding: 0.32rem 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .team-finder-actions button .mdi {
+            font-size: 1rem;
+        }
+
+        .team-finder-actions button:hover {
+            border-color: rgba(14,165,233,0.45);
+            background: rgba(14,165,233,0.16);
+            color: rgba(14,165,233,1);
+        }
+
         .team-finder-empty {
             text-align: center;
             padding: clamp(2.4rem, 5vw, 3.2rem);
@@ -150,6 +178,12 @@
         </div>
     </div>
 
+    @if(session('status'))
+        <div class="alert alert-success workspace-section mb-0">
+            {{ session('status') }}
+        </div>
+    @endif
+
     <div class="workspace-card workspace-section workspace-form">
         <form action="{{ route('workspace.team-finder.index') }}" method="GET">
             <div class="row g-3">
@@ -185,59 +219,120 @@
         </form>
     </div>
 
-    @if($contacts && $contacts->count())
-        <div class="workspace-section">
-            <div class="row g-4">
-                @foreach($contacts as $contact)
-                    <div class="col-md-6 col-xl-4">
-                        <div class="team-finder-result h-100">
-                            <div>
-                                <h3>{{ $contact->name }}</h3>
-                                <div class="team-finder-meta">
-                                    @if($contact->company)
-                                        <span>{{ $contact->company->name }} · {{ $contact->position ?? '—' }}</span>
+    <div class="workspace-section" data-results="{{ $hasFilters ? 'true' : 'false' }}">
+        @if($hasFilters)
+            @if($results->isEmpty())
+                @if($scrapeAttempted)
+                    <div class="team-finder-empty text-center py-5">
+                        <h2 class="h5">No leads yet</h2>
+                        <p class="text-subtle">We couldn’t find anyone matching those filters. Adjust the search or try again later.</p>
+                    </div>
+                @else
+                    <div class="team-finder-empty text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <h2 class="h5">Gathering leads...</h2>
+                        <p class="text-subtle">We’re sourcing potential teammates in real-time. Stay on the page and we’ll drop them in below.</p>
+                    </div>
+                @endif
+            @else
+                <div class="row g-4">
+                    @foreach($results as $result)
+                        <div class="col-md-6 col-xl-4">
+                            <div class="team-finder-result h-100">
+                                <div>
+                                    <h3>{{ $result->name() ?? 'Unknown contact' }}</h3>
+                                    <div class="team-finder-meta">
+                                        <span>{{ $result->company() }} · {{ $result->position() }}</span>
+                                        @if($result->team())
+                                            <span>{{ $result->team() }}</span>
+                                        @endif
+                                        @if($result->location())
+                                            <span>{{ $result->location() }}</span>
+                                        @endif
+                                        @if($result->source())
+                                            <span class="team-finder-pill">
+                                                <i class="mdi mdi-radar"></i>
+                                                {{ ucfirst($result->source()) }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="team-finder-actions d-flex flex-wrap gap-3 mt-auto">
+                                    @if($result->type === 'contact')
+                                        @php($contact = $result->contact)
+                                        @php($existingChat = $contact?->coffeeChats->first())
+                                        @if($existingChat)
+                                            <a href="{{ route('workspace.coffee-chats.edit', $existingChat) }}" class="btn btn-sm btn-outline-primary">
+                                                <span class="mdi mdi-pencil-outline"></span>
+                                                Manage coffee chat
+                                            </a>
+                                        @else
+                                            <form action="{{ route('workspace.team-finder.coffee-chats.store', $contact) }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="position_title" value="{{ $contact->position ?? ($filters['position'] ?? '') }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                    <span class="mdi mdi-coffee-outline"></span>
+                                                    Add to coffee chats
+                                                </button>
+                                            </form>
+                                        @endif
+                                        @if($result->profileUrl())
+                                            <a href="{{ $result->profileUrl() }}" target="_blank" rel="noopener">
+                                                <span class="mdi mdi-linkedin"></span>
+                                                LinkedIn
+                                            </a>
+                                        @endif
+                                        @if($result->email())
+                                            <a href="mailto:{{ $result->email() }}" class="btn btn-sm btn-outline-primary">
+                                                <span class="mdi mdi-email-outline"></span>
+                                                Email
+                                            </a>
+                                        @endif
                                     @else
-                                        <span>{{ $contact->position ?? '—' }}</span>
-                                    @endif
-                                    @if($contact->city || $contact->country)
-                                        <span>{{ trim($contact->city . ', ' . $contact->country, ', ') }}</span>
-                                    @endif
-                                    @if($contact->team_name)
-                                        <span class="team-finder-pill">
-                                            <i class="mdi mdi-account-multiple-outline"></i>
-                                            {{ $contact->team_name }}
-                                        </span>
+        
+                                        @if($result->profileUrl())
+                                            <a href="{{ $result->profileUrl() }}" target="_blank" rel="noopener">
+                                                <span class="mdi mdi-open-in-new"></span>
+                                                Profile
+                                            </a>
+                                        @endif
+                                        @if($result->email())
+                                            <a href="mailto:{{ $result->email() }}" class="btn btn-sm btn-outline-primary">
+                                                <span class="mdi mdi-email-outline"></span>
+                                                Email
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-primary">
+                                                <span class="mdi mdi-send"></span>
+                                                Send
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                                <span class="mdi mdi-reply"></span>
+                                                Follow-up
+                                            </button>
+                                        @endif
+                                        @if($result->scrapedAt())
+                                            <span class="text-subtle small">Scraped {{ $result->scrapedAt() }}</span>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
-                            <div class="team-finder-actions d-flex flex-wrap gap-3 mt-auto">
-                                @if($contact->linkedin_url)
-                                    <a href="{{ $contact->linkedin_url }}" target="_blank" rel="noopener">
-                                        <span class="mdi mdi-linkedin"></span>
-                                        LinkedIn
-                                    </a>
-                                @endif
-                                @if($contact->email)
-                                    <a href="mailto:{{ $contact->email }}">
-                                        <span class="mdi mdi-email-outline"></span>
-                                        Email
-                                    </a>
-                                @endif
-                            </div>
                         </div>
-                    </div>
-                @endforeach
-            </div>
-            @if($isPaginator)
-                <div class="mt-4 d-flex justify-content-center">
-                    {{ $contacts->appends(request()->query())->links() }}
+                    @endforeach
                 </div>
+                @if($contacts instanceof \Illuminate\Contracts\Pagination\Paginator && $contacts->hasPages())
+                    <div class="mt-4 d-flex justify-content-center">
+                        {{ $contacts->appends(request()->query())->links() }}
+                    </div>
+                @endif
             @endif
-        </div>
-    @else
-        <div class="team-finder-empty workspace-section">
-            <h2>No matches yet</h2>
-            <p>Adjust your filters or log more contacts to expand your talent map.</p>
-        </div>
-    @endif
+        @else
+            <div class="team-finder-empty">
+                <h2>No matches yet</h2>
+                <p>Adjust your filters or log more contacts to expand your talent map.</p>
+            </div>
+        @endif
+        <small class="text-subtle d-block mt-3">Leads refresh automatically every 10 minutes when you tweak filters.</small>
+    </div>
 @endsection

@@ -50,8 +50,13 @@ class CoffeeChatController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create()
     {
+        $user = auth()->user();
+        if ($user->isFree() && CoffeeChat::where('user_id', $user->id)->count() >= 10) {
+            return redirect()->route('pricing')->withErrors('Upgrade to the Premium plan to create unlimited coffee chats.');
+        }
+
         return view('workspace.coffee-chats.create', [
             'chat' => new CoffeeChat([
                 'status' => 'planned',
@@ -65,6 +70,11 @@ class CoffeeChatController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $user = $request->user();
+        if ($user->isFree() && CoffeeChat::where('user_id', $user->id)->count() >= 10) {
+            return redirect()->route('pricing')->withErrors('Upgrade to the Premium plan to create more than 10 coffee chats.');
+        }
+
         $fields = WorkspaceField::formFields();
         $data = $this->validated($request, null, $fields);
 
@@ -72,7 +82,7 @@ class CoffeeChatController extends Controller
         $contact = $this->resolveContact($data, $company);
 
         $chat = CoffeeChat::create([
-            'user_id' => auth()->id(),
+            'user_id' => $user->id,
             'company_id' => $company?->id,
             'contact_id' => $contact?->id,
             'position_title' => $data['position_title'] ?? null,

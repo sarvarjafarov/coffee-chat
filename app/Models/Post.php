@@ -6,10 +6,12 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use RalphJSmit\Laravel\SEO\Support\HasSEO;
 
 class Post extends Model
 {
     use HasFactory;
+    use HasSEO;
 
     protected $fillable = [
         'user_id',

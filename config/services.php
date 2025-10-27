@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'people_data_labs' => [
+        'api_key' => env('PEOPLE_DATA_LABS_API_KEY'),
+    ],
+
 ];

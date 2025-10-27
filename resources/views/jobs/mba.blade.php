@@ -168,6 +168,30 @@
             background: rgba(14,165,233,0.2);
             color: var(--accent-strong);
         }
+
+        .mba-card .follow-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            border-radius: 999px;
+            padding: 0.7rem 1.2rem;
+            font-weight: 600;
+            background: rgba(37,99,235,0.12);
+            border: 1px solid rgba(37,99,235,0.28);
+            color: rgba(37,99,235,0.92);
+            transition: all 0.2s ease;
+        }
+
+        .mba-card .follow-btn:hover {
+            background: rgba(37,99,235,0.18);
+            color: var(--accent-strong);
+        }
+
+        .mba-card .action-group {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+        }
     </style>
 
     <section class="site-section mba-hero mb-5">
@@ -214,15 +238,29 @@
                         {{ $job->location }}
                     </span>
                     <p class="description mb-0">{{ $job->description }}</p>
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-auto">
+                    @php
+                        $city = trim(\Illuminate\Support\Str::before($job->location, '·'));
+                        $teamFinderUrl = route('workspace.team-finder.index', array_filter([
+                            'position' => $job->title,
+                            'company' => $job->company,
+                            'city' => $city,
+                        ], fn ($value) => filled($value)));
+                    @endphp
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-auto">
                         <span class="text-subtle small">
                             <span class="mdi mdi-check-circle-outline"></span>
                             Direct apply
                         </span>
-                        <a href="{{ $job->apply_url }}" target="_blank" rel="noopener" class="apply-btn">
-                            <span class="mdi mdi-open-in-new"></span>
-                            Apply now
-                        </a>
+                        <div class="action-group">
+                            <a href="{{ $teamFinderUrl }}" class="follow-btn">
+                                <span class="mdi mdi-account-search-outline"></span>
+                                Follow role
+                            </a>
+                            <a href="{{ $job->apply_url }}" target="_blank" rel="noopener" class="apply-btn">
+                                <span class="mdi mdi-open-in-new"></span>
+                                Apply now
+                            </a>
+                        </div>
                     </div>
                 </article>
             @endforeach
@@ -262,15 +300,29 @@
                             </span>
                         @endif
                         <p class="description mb-0">{{ data_get($job, 'description') }}</p>
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-auto">
+                        @php
+                            $internCity = trim(\Illuminate\Support\Str::before(data_get($job, 'location', ''), '·'));
+                            $internFinderUrl = route('workspace.team-finder.index', array_filter([
+                                'position' => data_get($job, 'title'),
+                                'company' => data_get($job, 'company'),
+                                'city' => $internCity,
+                            ], fn ($value) => filled($value)));
+                        @endphp
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-auto">
                             <span class="text-subtle small">
                                 <span class="mdi mdi-check-circle-outline"></span>
                                 Direct apply
                             </span>
-                            <a href="{{ data_get($job, 'apply_url') }}" target="_blank" rel="noopener" class="apply-btn">
-                            <span class="mdi mdi-open-in-new"></span>
-                            Apply now
-                        </a>
+                            <div class="action-group">
+                                <a href="{{ $internFinderUrl }}" class="follow-btn">
+                                    <span class="mdi mdi-account-search-outline"></span>
+                                    Follow role
+                                </a>
+                                <a href="{{ data_get($job, 'apply_url') }}" target="_blank" rel="noopener" class="apply-btn">
+                                    <span class="mdi mdi-open-in-new"></span>
+                                    Apply now
+                                </a>
+                            </div>
                     </div>
                     </article>
                 @endforeach

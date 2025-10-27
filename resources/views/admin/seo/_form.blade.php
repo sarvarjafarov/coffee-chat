@@ -1,62 +1,68 @@
-<div class="form-row">
-    <div class="form-group col-md-4">
-        <label for="slug">Slug</label>
-        <input type="text" class="form-control" id="slug" name="slug" value="{{ old('slug', $seoMeta->slug ?? '') }}" required>
-        <small class="text-muted">Matches page slug or identifier (e.g. <code>home</code>, <code>stories</code>).</small>
-    </div>
-    <div class="form-group col-md-4">
-        <label for="page_id">Linked Page</label>
-        <select class="form-control" id="page_id" name="page_id">
-            <option value="">— None —</option>
-            @foreach($pages as $pageOption)
-                <option value="{{ $pageOption->id }}" @selected(old('page_id', $seoMeta->page_id ?? '') == $pageOption->id)>{{ $pageOption->name }}</option>
-            @endforeach
-        </select>
-    </div>
-    <div class="form-group col-md-4">
-        <label for="canonical_url">Canonical URL</label>
-        <input type="url" class="form-control" id="canonical_url" name="canonical_url" value="{{ old('canonical_url', $seoMeta->canonical_url ?? '') }}" placeholder="https://example.com/page">
-    </div>
-</div>
+@php
+    $schemaValue = old('schema');
+    if ($schemaValue === null) {
+        $schemaValue = $seo->schema ? json_encode($seo->schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '';
+    }
+@endphp
 
 <div class="form-group">
-    <label for="title">Title</label>
-    <input type="text" class="form-control" id="title" name="title" value="{{ old('title', $seoMeta->title ?? '') }}">
+    <label for="title">SEO Title</label>
+    <input type="text" class="form-control" id="title" name="title" value="{{ old('title', $seo->title) }}" placeholder="Page title">
+    <small class="text-muted">Appears in the &lt;title&gt; tag and social previews.</small>
+    @error('title')
+        <span class="text-danger small d-block">{{ $message }}</span>
+    @enderror
 </div>
 
 <div class="form-group">
     <label for="description">Meta Description</label>
-    <textarea class="form-control" id="description" name="description" rows="3">{{ old('description', $seoMeta->description ?? '') }}</textarea>
+    <textarea class="form-control" id="description" name="description" rows="3" placeholder="Concise summary for search results">{{ old('description', $seo->description) }}</textarea>
+    @error('description')
+        <span class="text-danger small d-block">{{ $message }}</span>
+    @enderror
 </div>
 
 <div class="form-row">
     <div class="form-group col-md-6">
-        <label for="keywords">Keywords</label>
-        <input type="text" class="form-control" id="keywords" name="keywords" value="{{ old('keywords', $seoMeta->keywords ?? '') }}" placeholder="Comma separated">
+        <label for="author">Author</label>
+        <input type="text" class="form-control" id="author" name="author" value="{{ old('author', $seo->author) }}" placeholder="Author name">
+        @error('author')
+            <span class="text-danger small d-block">{{ $message }}</span>
+        @enderror
     </div>
     <div class="form-group col-md-6">
-        <label for="twitter_card">Twitter Card</label>
-        <input type="text" class="form-control" id="twitter_card" name="twitter_card" value="{{ old('twitter_card', $seoMeta->twitter_card ?? 'summary_large_image') }}">
+        <label for="image">Share Image URL</label>
+        <input type="text" class="form-control" id="image" name="image" value="{{ old('image', $seo->image) }}" placeholder="images/seo/share.png">
+        <small class="text-muted">Public path relative to the app root or absolute URL.</small>
+        @error('image')
+            <span class="text-danger small d-block">{{ $message }}</span>
+        @enderror
     </div>
 </div>
 
 <div class="form-row">
     <div class="form-group col-md-6">
-        <label for="og_title">Open Graph Title</label>
-        <input type="text" class="form-control" id="og_title" name="og_title" value="{{ old('og_title', $seoMeta->og_title ?? '') }}">
+        <label for="canonical_url">Canonical URL</label>
+        <input type="text" class="form-control" id="canonical_url" name="canonical_url" value="{{ old('canonical_url', $seo->canonical_url ?? '') }}" placeholder="https://example.com/page">
+        @error('canonical_url')
+            <span class="text-danger small d-block">{{ $message }}</span>
+        @enderror
     </div>
     <div class="form-group col-md-6">
-        <label for="og_image">Open Graph Image URL</label>
-        <input type="text" class="form-control" id="og_image" name="og_image" value="{{ old('og_image', $seoMeta->og_image ?? '') }}">
+        <label for="robots">Robots Directives</label>
+        <input type="text" class="form-control" id="robots" name="robots" value="{{ old('robots', $seo->robots ?? '') }}" placeholder="noindex,nofollow">
+        <small class="text-muted">Leave blank to use defaults from the SEO config.</small>
+        @error('robots')
+            <span class="text-danger small d-block">{{ $message }}</span>
+        @enderror
     </div>
 </div>
 
 <div class="form-group">
-    <label for="og_description">Open Graph Description</label>
-    <textarea class="form-control" id="og_description" name="og_description" rows="3">{{ old('og_description', $seoMeta->og_description ?? '') }}</textarea>
-</div>
-
-<div class="form-group">
-    <label for="meta">Additional meta (JSON)</label>
-    <textarea class="form-control" id="meta" name="meta" rows="6" placeholder='{"alternate": [{"hreflang": "en", "href": "https://..."}] }'>{{ old('meta', $metaJson ?? '') }}</textarea>
+    <label for="schema">Structured data (JSON-LD)</label>
+    <textarea class="form-control" id="schema" name="schema" rows="8" placeholder='{"@@context":"https://schema.org","@@type":"Article"}'>{{ $schemaValue }}</textarea>
+    <small class="text-muted">Optional JSON-LD payload that will be output in a &lt;script type="application/ld+json"&gt; tag.</small>
+    @error('schema')
+        <span class="text-danger small d-block">{{ $message }}</span>
+    @enderror
 </div>

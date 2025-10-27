@@ -17,6 +17,27 @@
         <div class="alert alert-success workspace-section mb-0">{{ session('status') }}</div>
     @endif
 
+    <style>
+        .coffee-chat-manage-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-top: 0.35rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-strong);
+            text-decoration: none;
+        }
+
+        .coffee-chat-manage-link .mdi {
+            font-size: 1rem;
+        }
+
+        .coffee-chat-manage-link:hover {
+            color: var(--accent);
+        }
+    </style>
+
     <div class="workspace-section">
         <div class="workspace-metrics">
             <div class="workspace-metric-card">
@@ -82,7 +103,17 @@
                             @endif
                         </td>
                         <td>{{ $chat->company?->name ?? '—' }}</td>
-                        <td>{{ $chat->contact?->name ?? '—' }}</td>
+                        <td>
+                            @if($chat->contact)
+                                <span class="fw-semibold d-block">{{ $chat->contact->name }}</span>
+                                <a href="{{ route('workspace.coffee-chats.edit', $chat) }}" class="coffee-chat-manage-link">
+                                    <span class="mdi mdi-pencil-outline"></span>
+                                    Manage
+                                </a>
+                            @else
+                                <span class="text-subtle">—</span>
+                            @endif
+                        </td>
                         <td>
                             <span class="badge-soft">{{ $statusOptions[$chat->status] ?? $chat->status }}</span>
                         </td>

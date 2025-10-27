@@ -92,6 +92,30 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{{ route('admin.network-health.index') }}" class="nav-link {{ request()->routeIs('admin.network-health.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-heartbeat"></i>
+                            <p>Network health</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.menu.index') }}" class="nav-link {{ request()->routeIs('admin.menu.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-link"></i>
+                            <p>Menu items</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.site-menu.index') }}" class="nav-link {{ request()->routeIs('admin.site-menu.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-bars"></i>
+                            <p>Header menu</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.stripe.settings') }}" class="nav-link {{ request()->routeIs('admin.stripe.settings') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-credit-card"></i>
+                            <p>Stripe integration</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{{ route('admin.posts.index') }}" class="nav-link {{ request()->routeIs('admin.posts.*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-newspaper"></i>
                             <p>Posts</p>

@@ -22,6 +22,10 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'plan',
+        'stripe_customer_id',
+        'stripe_subscription_id',
+        'plan_expires_at',
     ];
 
     /**
@@ -45,6 +49,22 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'plan_expires_at' => 'datetime',
         ];
+    }
+
+    public function isPremium(): bool
+    {
+        return $this->plan === 'premium' && (! $this->plan_expires_at || $this->plan_expires_at->isFuture());
+    }
+
+    public function isFree(): bool
+    {
+        return ! $this->isPremium();
+    }
+
+    public function menuItems()
+    {
+        return $this->hasMany(WorkspaceMenuItem::class);
     }
 }
