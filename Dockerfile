@@ -43,8 +43,8 @@ RUN apt-get update \
 
 # Configure Apache to serve the Laravel public directory
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/default-ssl.conf \
-    && a2enmod rewrite
+COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
+RUN a2enmod rewrite
 
 WORKDIR /var/www/html
 
