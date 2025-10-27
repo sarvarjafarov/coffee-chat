@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Copy composer files first to leverage Docker cache
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader || ./vendor/bin/composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
 # Copy full application source and rebuild optimised autoload map
 COPY . .
