@@ -2,8 +2,8 @@
 FROM composer:2 AS vendor
 WORKDIR /app
 
-# Copy composer files first to leverage Docker cache
-COPY composer.json composer.lock ./
+# Copy composer manifest and artisan early to leverage cache for dependencies
+COPY composer.json composer.lock artisan ./
 RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
 # Copy full application source and rebuild optimised autoload map
