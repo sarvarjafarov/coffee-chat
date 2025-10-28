@@ -61,9 +61,9 @@ COPY --from=vendor /app /var/www/html
 # Copy built assets from Node stage
 COPY --from=frontend /app/public/build /var/www/html/public/build
 
-# Ensure storage and cache directories are writable
-RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+# Ensure storage, cache, and database directories are writable
+RUN chown -R www-data:www-data storage bootstrap/cache database \
+    && chmod -R 775 storage bootstrap/cache database
 
 ENV PORT=8080
 EXPOSE 8080
