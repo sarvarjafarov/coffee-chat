@@ -29,10 +29,7 @@ RUN npm run build
 # Stage 3: production image with PHP + Apache
 FROM php:8.2-apache
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    APP_ENV=production \
-    APP_KEY=base64:omuuRFBmTBdST7sPtXXqpCbjOy98Yu2UHyNq++3MBJA= \
-    APP_DEBUG=false
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
