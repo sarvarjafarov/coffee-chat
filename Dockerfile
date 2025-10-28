@@ -65,4 +65,4 @@ ENV PORT=8080
 EXPOSE 8080
 
 # Adjust Apache to listen on the PORT provided by Render before starting
-CMD ["/bin/sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT}/\" /etc/apache2/ports.conf && apache2-foreground"]
+CMD ["/bin/sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT}/\" /etc/apache2/ports.conf && sed -i \"s#\\*:80#\\*:${PORT}#\" /etc/apache2/sites-available/laravel.conf && apache2-foreground"]
