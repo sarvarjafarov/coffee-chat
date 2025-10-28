@@ -43,10 +43,8 @@ RUN apt-get update \
 
 # Configure Apache to serve the Laravel public directory
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN a2dissite 000-default \
-    && printf '<VirtualHost *:80>\n    ServerAdmin webmaster@localhost\n    DocumentRoot %s\n    DirectoryIndex index.php index.html\n    <Directory %s>\n        Options -Indexes +FollowSymLinks\n        AllowOverride All\n        Require all granted\n    </Directory>\n    ErrorLog ${APACHE_LOG_DIR}/error.log\n    CustomLog ${APACHE_LOG_DIR}/access.log combined\n</VirtualHost>\n' "${APACHE_DOCUMENT_ROOT}" "${APACHE_DOCUMENT_ROOT}" > /etc/apache2/sites-available/laravel.conf \
-    && a2ensite laravel \
-    && sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/default-ssl.conf \
+RUN printf '<Directory %s>\n    Options -Indexes +FollowSymLinks\n    AllowOverride All\n    Require all granted\n    DirectoryIndex index.php index.html\n</Directory>\n' "${APACHE_DOCUMENT_ROOT}" > /etc/apache2/conf-available/laravel.conf \
+    && a2enconf laravel \
     && a2enmod rewrite
 
 WORKDIR /var/www/html
@@ -64,5 +62,9 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
 ENV PORT=8080
 EXPOSE 8080
 
-# Adjust Apache to listen on the PORT provided by Render before starting
-CMD ["/bin/sh", "-c", "sed -i \"s/Listen 80/Listen ${PORT}/\" /etc/apache2/ports.conf && sed -i \"s#\\*:80#\\*:${PORT}#\" /etc/apache2/sites-available/laravel.conf && apache2-foreground"]
+# Render-specific entrypoint adjusts Apache port before starting
+COPY docker/render-entrypoint.sh /usr/local/bin/render-entrypoint.sh
+RUN chmod +x /usr/local/bin/render-entrypoint.sh
+
+ENTRYPOINT ["render-entrypoint.sh"]
+CMD ["apache2-foreground"]
