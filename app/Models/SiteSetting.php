@@ -26,6 +26,11 @@ class SiteSetting extends Model
     public static function updateMany(array $settings): void
     {
         foreach ($settings as $key => $value) {
+            if ($value === null || $value === '') {
+                static::query()->where('key', $key)->delete();
+                continue;
+            }
+
             static::query()->updateOrCreate(['key' => $key], ['value' => $value]);
         }
     }

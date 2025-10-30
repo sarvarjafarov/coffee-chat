@@ -34,6 +34,11 @@ class DashboardController extends Controller
             }
         }
 
+        $settings = array_merge([
+            'google_search_api_key' => env('GOOGLE_SEARCH_API_KEY'),
+            'google_cse_id' => env('GOOGLE_CSE_ID'),
+        ], $settings);
+
         return view('dashboard', [
             'pages' => $pages,
             'recentPosts' => $recentPosts,
@@ -73,5 +78,23 @@ class DashboardController extends Controller
         }
 
         return back()->with('status', 'Theme colours updated successfully.');
+    }
+
+    public function updateSearchSettings(Request $request): RedirectResponse
+    {
+        if (! $request->user()?->is_admin) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'google_search_api_key' => ['nullable', 'string', 'max:255'],
+            'google_cse_id' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        if (Schema::hasTable('site_settings')) {
+            SiteSetting::updateMany($validated);
+        }
+
+        return back()->with('status', 'Search integrations updated successfully.');
     }
 }

@@ -39,4 +39,9 @@ return [
         'api_key' => env('PEOPLE_DATA_LABS_API_KEY'),
     ],
 
+    'google' => [
+        'key' => env('GOOGLE_SEARCH_API_KEY'),
+        'cx' => env('GOOGLE_CSE_ID'),
+    ],
+
 ];

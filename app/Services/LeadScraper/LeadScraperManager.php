@@ -11,10 +11,13 @@ class LeadScraperManager
      */
     protected array $scrapers = [];
 
+    protected array $diagnostics = [];
+
     public function __construct()
     {
         $this->scrapers = [
             new PeopleDataLabsScraper(),
+            new GoogleCustomSearchScraper(),
         ];
     }
 
@@ -25,10 +28,18 @@ class LeadScraperManager
     public function run(array $filters): Collection
     {
         $results = collect();
+        $this->diagnostics = [];
 
         foreach ($this->scrapers as $scraper) {
             try {
                 $scraped = $scraper->search($filters);
+                $count = is_countable($scraped) ? count($scraped) : 0;
+                $this->diagnostics[] = [
+                    'source' => $scraper->sourceName(),
+                    'status' => $count > 0 ? 'success' : 'no_results',
+                    'count' => $count,
+                    'message' => $count > 0 ? null : 'No matches returned for this query.',
+                ];
                 foreach ($scraped as $result) {
                     $results->push(array_merge($result, [
                         'source' => $scraper->sourceName(),
@@ -36,9 +47,20 @@ class LeadScraperManager
                 }
             } catch (\Throwable $exception) {
                 report($exception);
+                $this->diagnostics[] = [
+                    'source' => $scraper->sourceName(),
+                    'status' => 'error',
+                    'count' => 0,
+                    'message' => $exception->getMessage(),
+                ];
             }
         }
 
         return $results;
+    }
+
+    public function diagnostics(): array
+    {
+        return $this->diagnostics;
     }
 }

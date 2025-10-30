@@ -3,9 +3,11 @@
 @section('workspace-content')
     @php
         $filters = $filters ?? [];
-        $contacts = $contacts ?? collect();
         $hasFilters = $hasFilters ?? false;
-        $isPaginator = $contacts instanceof \Illuminate\Contracts\Pagination\Paginator;
+        $results = collect($results ?? []);
+        $recommended = collect($recommended ?? []);
+        $summary = $summary ?? ['total' => 0, 'by_source' => []];
+        $diagnostics = collect($diagnostics ?? []);
     @endphp
 
     <style>
@@ -76,6 +78,34 @@
             font-size: 1.18rem;
             font-weight: 600;
             color: var(--text-primary);
+        }
+
+        .team-finder-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.28rem 0.85rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,0.16);
+            background: rgba(248,250,252,0.9);
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: rgba(71,85,105,0.8);
+        }
+
+        .team-finder-chip .mdi {
+            font-size: 1rem;
+        }
+
+        .team-finder-chip--source {
+            background: rgba(14,165,233,0.1);
+            color: rgba(14,165,233,0.85);
+            border-color: rgba(14,165,233,0.22);
+        }
+
+        .team-finder-chip--confidence {
+            background: rgba(30,41,59,0.06);
+            border-color: rgba(148,163,184,0.18);
         }
 
         .team-finder-meta {
@@ -178,14 +208,26 @@
         </div>
     </div>
 
-    @if(session('status'))
+@if(session('status'))
         <div class="alert alert-success workspace-section mb-0">
             {{ session('status') }}
         </div>
-    @endif
+@endif
+
+@isset($statusMessage)
+    <div class="alert alert-warning workspace-section mb-0">
+        {{ $statusMessage }}
+    </div>
+@endisset
 
     <div class="workspace-card workspace-section workspace-form">
-        <form action="{{ route('workspace.team-finder.index') }}" method="GET">
+        <form
+            action="{{ route('workspace.team-finder.index') }}"
+            method="GET"
+            data-team-finder-form
+            data-search-endpoint="{{ route('workspace.team-finder.search') }}"
+            data-follow-action="{{ route('workspace.team-finder.follow') }}"
+        >
             <div class="row g-3">
                 <div class="col-md-6 col-xl-3">
                     <label for="position">Position</label>
@@ -219,120 +261,218 @@
         </form>
     </div>
 
-    <div class="workspace-section" data-results="{{ $hasFilters ? 'true' : 'false' }}">
-        @if($hasFilters)
-            @if($results->isEmpty())
-                @if($scrapeAttempted)
-                    <div class="team-finder-empty text-center py-5">
-                        <h2 class="h5">No leads yet</h2>
-                        <p class="text-subtle">We couldn’t find anyone matching those filters. Adjust the search or try again later.</p>
+    <div class="workspace-section" data-team-finder-top-wrapper>
+        @if($recommended->isNotEmpty())
+            <div class="workspace-card">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div>
+                        <span class="workspace-eyebrow text-uppercase">Top matches</span>
+                        <h2 class="h5 mb-1">Best prospects to reach out to first</h2>
+                        @if(($summary['total'] ?? 0) > 0)
+                            @php
+                                $sourceLabels = collect(array_keys($summary['by_source'] ?? []))
+                                    ->map(fn ($label) => str($label)->replace('_', ' ')->title())
+                                    ->all();
+                            @endphp
+                            <p class="text-subtle mb-0">
+                                {{ $summary['total'] }} total matches surfaced from
+                                {{ \Illuminate\Support\Arr::join($sourceLabels, ', ', ' and ') }}.
+                            </p>
+                        @endif
                     </div>
-                @else
-                    <div class="team-finder-empty text-center py-5">
-                        <div class="spinner-border text-primary mb-3" role="status">
-                            <span class="sr-only">Loading...</span>
-                        </div>
-                        <h2 class="h5">Gathering leads...</h2>
-                        <p class="text-subtle">We’re sourcing potential teammates in real-time. Stay on the page and we’ll drop them in below.</p>
-                    </div>
-                @endif
-            @else
-                <div class="row g-4">
-                    @foreach($results as $result)
+                </div>
+                <div class="row g-3 mt-3" data-team-finder-top>
+                    @foreach($recommended as $item)
+                        @php
+                            $itemSnippet = $item['snippet'] ?? $item['primary_reason'] ?? null;
+                            $itemConfidence = isset($item['confidence']) ? (int) round(($item['confidence'] ?? 0) * 100) : null;
+                        @endphp
                         <div class="col-md-6 col-xl-4">
                             <div class="team-finder-result h-100">
                                 <div>
-                                    <h3>{{ $result->name() ?? 'Unknown contact' }}</h3>
+                                    <h3 class="mb-1">{{ $item['name'] ?? 'Potential contact' }}</h3>
                                     <div class="team-finder-meta">
-                                        <span>{{ $result->company() }} · {{ $result->position() }}</span>
-                                        @if($result->team())
-                                            <span>{{ $result->team() }}</span>
+                                        <span>
+                                            {{ $item['company'] ?? $filters['company'] ?? 'Unknown company' }}
+                                            @if(!empty($item['role']))
+                                                · {{ $item['role'] }}
+                                            @endif
+                                        </span>
+                                        @if(!empty($item['team']))
+                                            <span>{{ $item['team'] }}</span>
                                         @endif
-                                        @if($result->location())
-                                            <span>{{ $result->location() }}</span>
+                                        @if(!empty($item['location']))
+                                            <span>{{ $item['location'] }}</span>
                                         @endif
-                                        @if($result->source())
-                                            <span class="team-finder-pill">
-                                                <i class="mdi mdi-radar"></i>
-                                                {{ ucfirst($result->source()) }}
-                                            </span>
-                                        @endif
+                                        <div class="d-flex flex-wrap gap-2 mt-2">
+                                            @if(!empty($item['source']))
+                                                <span class="team-finder-chip team-finder-chip--source">
+                                                    <i class="mdi mdi-radar"></i>
+                                                    {{ str($item['source'] ?? 'unknown')->replace('_', ' ')->title() }}
+                                                </span>
+                                            @endif
+                                            @if($itemConfidence !== null)
+                                                <span class="team-finder-chip team-finder-chip--confidence">
+                                                    <i class="mdi mdi-target"></i>
+                                                    {{ $itemConfidence }}% confidence
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="team-finder-actions d-flex flex-wrap gap-3 mt-auto">
-                                    @if($result->type === 'contact')
-                                        @php($contact = $result->contact)
-                                        @php($existingChat = $contact?->coffeeChats->first())
-                                        @if($existingChat)
-                                            <a href="{{ route('workspace.coffee-chats.edit', $existingChat) }}" class="btn btn-sm btn-outline-primary">
-                                                <span class="mdi mdi-pencil-outline"></span>
-                                                Manage coffee chat
-                                            </a>
-                                        @else
-                                            <form action="{{ route('workspace.team-finder.coffee-chats.store', $contact) }}" method="POST">
-                                                @csrf
-                                                <input type="hidden" name="position_title" value="{{ $contact->position ?? ($filters['position'] ?? '') }}">
-                                                <button type="submit" class="btn btn-sm btn-outline-primary">
-                                                    <span class="mdi mdi-coffee-outline"></span>
-                                                    Add to coffee chats
-                                                </button>
-                                            </form>
-                                        @endif
-                                        @if($result->profileUrl())
-                                            <a href="{{ $result->profileUrl() }}" target="_blank" rel="noopener">
-                                                <span class="mdi mdi-linkedin"></span>
-                                                LinkedIn
-                                            </a>
-                                        @endif
-                                        @if($result->email())
-                                            <a href="mailto:{{ $result->email() }}" class="btn btn-sm btn-outline-primary">
-                                                <span class="mdi mdi-email-outline"></span>
-                                                Email
-                                            </a>
-                                        @endif
-                                    @else
-        
-                                        @if($result->profileUrl())
-                                            <a href="{{ $result->profileUrl() }}" target="_blank" rel="noopener">
-                                                <span class="mdi mdi-open-in-new"></span>
-                                                Profile
-                                            </a>
-                                        @endif
-                                        @if($result->email())
-                                            <a href="mailto:{{ $result->email() }}" class="btn btn-sm btn-outline-primary">
-                                                <span class="mdi mdi-email-outline"></span>
-                                                Email
-                                            </a>
-                                            <button type="button" class="btn btn-sm btn-outline-primary">
-                                                <span class="mdi mdi-send"></span>
-                                                Send
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary">
-                                                <span class="mdi mdi-reply"></span>
-                                                Follow-up
-                                            </button>
-                                        @endif
-                                        @if($result->scrapedAt())
-                                            <span class="text-subtle small">Scraped {{ $result->scrapedAt() }}</span>
-                                        @endif
+                                <div class="team-finder-actions d-flex flex-column gap-3 mt-auto">
+                                    @if($itemSnippet)
+                                        <p class="mb-0 text-sm text-slate-600">{{ \Illuminate\Support\Str::of($itemSnippet)->limit(220) }}</p>
                                     @endif
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @if(!empty($item['url']))
+                                            <a href="{{ $item['url'] }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
+                                                <span class="mdi mdi-open-in-new"></span>
+                                                View profile
+                                            </a>
+                                        @endif
+                                        <form action="{{ route('workspace.team-finder.follow') }}" method="POST" class="d-inline" data-follow-coffee-chat>
+                                            @csrf
+                                            <input type="hidden" name="contact" value='@json($item)'>
+                                            <button type="submit" class="btn btn-sm btn-primary">
+                                                <span class="mdi mdi-send"></span>
+                                                Follow for coffee chat
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" data-result='@json($item)'>
+                                            <span class="mdi mdi-note-plus-outline"></span>
+                                            Add note
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     @endforeach
                 </div>
-                @if($contacts instanceof \Illuminate\Contracts\Pagination\Paginator && $contacts->hasPages())
-                    <div class="mt-4 d-flex justify-content-center">
-                        {{ $contacts->appends(request()->query())->links() }}
-                    </div>
-                @endif
-            @endif
-        @else
-            <div class="team-finder-empty">
-                <h2>No matches yet</h2>
-                <p>Adjust your filters or log more contacts to expand your talent map.</p>
             </div>
         @endif
-        <small class="text-subtle d-block mt-3">Leads refresh automatically every 10 minutes when you tweak filters.</small>
     </div>
+
+    <div class="workspace-section" data-team-finder-diagnostics-wrapper>
+        @if($diagnostics->isNotEmpty())
+            <div class="alert alert-info mb-0" data-team-finder-diagnostics>
+                <strong>Provider status</strong>
+                <ul class="mb-0 mt-2 ps-3">
+                    @foreach($diagnostics as $diagnostic)
+                        <li>
+                            <span class="fw-semibold">{{ str($diagnostic['source'] ?? 'unknown')->replace('_', ' ')->title() }}:</span>
+                            @if(($diagnostic['status'] ?? '') === 'success')
+                                {{ $diagnostic['count'] ?? 0 }} match(es) returned.
+                            @elseif(($diagnostic['status'] ?? '') === 'no_results')
+                                No matches returned for this query.
+                            @else
+                                {{ $diagnostic['message'] ?? 'Request failed.' }}
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+    </div>
+
+    <div class="workspace-section" data-team-finder-results-wrapper>
+        <div class="team-finder-message mb-4" data-team-finder-message>
+            @isset($statusMessage)
+                <div class="alert alert-warning mb-0">{{ $statusMessage }}</div>
+            @endisset
+        </div>
+
+        @if($hasFilters)
+            @if($results->isNotEmpty())
+                <div class="row g-4" data-team-finder-results>
+                    @foreach($results as $result)
+                        <div class="col-md-6 col-xl-4">
+                            <div class="team-finder-result h-100">
+                                <div>
+                                    <h3>{{ $result['name'] ?? 'Potential contact' }}</h3>
+                                    <div class="team-finder-meta">
+                                        <span>
+                                            {{ $result['company'] ?? $filters['company'] ?? 'Unknown company' }}
+                                            @if(!empty($result['role']))
+                                                · {{ $result['role'] }}
+                                            @endif
+                                        </span>
+                                        @php
+                                            $resultSnippet = $result['snippet'] ?? $result['primary_reason'] ?? null;
+                                            $resultConfidence = isset($result['confidence']) ? (int) round(($result['confidence'] ?? 0) * 100) : null;
+                                        @endphp
+                                        @if(!empty($result['team']))
+                                            <span>{{ $result['team'] }}</span>
+                                        @endif
+                                        @if(!empty($result['location']))
+                                            <span>{{ $result['location'] }}</span>
+                                        @endif
+                                        <div class="d-flex flex-wrap gap-2 mt-2">
+                                            @if(!empty($result['source']))
+                                                <span class="team-finder-chip team-finder-chip--source">
+                                                    <i class="mdi mdi-radar"></i>
+                                                    {{ str($result['source'])->replace('_', ' ')->title() }}
+                                                </span>
+                                            @endif
+                                            @if($resultConfidence !== null)
+                                                <span class="team-finder-chip team-finder-chip--confidence">
+                                                    <i class="mdi mdi-target"></i>
+                                                    {{ $resultConfidence }}% confidence
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="team-finder-actions d-flex flex-column gap-3 mt-auto">
+                                    @if($resultSnippet)
+                                        <p class="mb-0 text-sm text-slate-600">{{ \Illuminate\Support\Str::of($resultSnippet)->limit(220) }}</p>
+                                    @endif
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @if(!empty($result['url']))
+                                            <a href="{{ $result['url'] }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
+                                                <span class="mdi mdi-open-in-new"></span>
+                                                View profile
+                                            </a>
+                                        @endif
+                                        <form action="{{ route('workspace.team-finder.follow') }}" method="POST" class="d-inline" data-follow-coffee-chat>
+                                            @csrf
+                                            <input type="hidden" name="contact" value='@json($result)'>
+                                            <button type="submit" class="btn btn-sm btn-primary">
+                                                <span class="mdi mdi-send"></span>
+                                                Follow for coffee chat
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" data-result='@json($result)'>
+                                            <span class="mdi mdi-note-plus-outline"></span>
+                                            Add note
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @elseif($scrapeAttempted)
+                <div class="team-finder-empty text-center py-5">
+                    <h2 class="h5">No leads yet</h2>
+                    <p class="text-subtle">We couldn’t find anyone matching those filters. Adjust the search or try again later.</p>
+                </div>
+            @else
+                <div class="team-finder-empty text-center py-5" data-team-finder-placeholder>
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <h2 class="h5">Gathering leads...</h2>
+                    <p class="text-subtle">We’re sourcing potential teammates in real-time. Stay on the page and we’ll drop them in below.</p>
+                </div>
+            @endif
+        @else
+            <div class="team-finder-empty text-center py-5" data-team-finder-placeholder>
+                <h2 class="h5">Start with a company &amp; role</h2>
+                <p class="text-subtle mb-0">Enter a company and position to uncover warm coffee-chat prospects from across the web.</p>
+            </div>
+        @endif
+        <small class="text-subtle d-block mt-3" data-team-finder-footnote>External leads refresh automatically when you tweak filters. Top matches blend your workspace data with live search results.</small>
+    </div>
+
 @endsection

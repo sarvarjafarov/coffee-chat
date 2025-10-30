@@ -20,40 +20,58 @@ class PeopleDataLabsScraper implements ScraperInterface
             return [];
         }
 
-        $clauses = [];
+        $mustClauses = [];
 
         if (! empty($filters['position'])) {
-            $clauses[] = 'job_title:"'.addslashes($filters['position']).'"';
+            $mustClauses[] = [
+                'match_phrase' => [
+                    'job_title' => $filters['position'],
+                ],
+            ];
         }
 
         if (! empty($filters['company'])) {
-            $clauses[] = 'job_company_name:"'.addslashes($filters['company']).'"';
+            $mustClauses[] = [
+                'match_phrase' => [
+                    'job_company_name' => $filters['company'],
+                ],
+            ];
         }
 
         if (! empty($filters['city'])) {
-            $clauses[] = 'location_name:"'.addslashes($filters['city']).'"';
+            $mustClauses[] = [
+                'match_phrase' => [
+                    'location_name' => $filters['city'],
+                ],
+            ];
         }
 
-        if (! empty($filters['team_name'])) {
-            $clauses[] = 'job_department:"'.addslashes($filters['team_name']).'"';
+        $teamValue = $filters['team_name'] ?? $filters['team'] ?? null;
+        if (! empty($teamValue)) {
+            $mustClauses[] = [
+                'match_phrase' => [
+                    'job_department' => $teamValue,
+                ],
+            ];
         }
 
-        $query = $clauses ? implode(' AND ', $clauses) : '*';
+        $query = $mustClauses
+            ? ['bool' => ['must' => $mustClauses]]
+            : ['match_all' => (object) []];
 
         try {
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
                 'X-Api-Key' => $apiKey,
             ])->post('https://api.peopledatalabs.com/v5/person/search', [
-                'query' => $query,
+                'query' => json_encode($query, JSON_UNESCAPED_UNICODE),
                 'size' => 5,
                 'dataset' => 'linkedin',
                 'minimum_likelihood' => 1,
             ]);
 
             if ($response->failed()) {
-                report(new \RuntimeException('People Data Labs request failed: '.$response->body()));
-                return [];
+                throw new \RuntimeException('People Data Labs request failed: '.$response->body());
             }
 
             $data = $response->json('data', []);

@@ -59,6 +59,7 @@ Route::get('/admin', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/theme', [DashboardController::class, 'updateTheme'])->name('dashboard.theme');
+    Route::post('/dashboard/search', [DashboardController::class, 'updateSearchSettings'])->name('dashboard.search');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -67,6 +68,8 @@ Route::middleware('auth')->group(function () {
 
 Route::prefix('workspace')->name('workspace.')->middleware(['auth'])->group(function () {
     Route::redirect('/', '/workspace/coffee-chats');
+    Route::get('team-finder/search', [WorkspaceTeamFinderController::class, 'teamFinder'])->name('team-finder.search');
+    Route::post('team-finder/follow', [WorkspaceTeamFinderController::class, 'follow'])->name('team-finder.follow');
     Route::resource('coffee-chats', WorkspaceCoffeeChatController::class)->except(['show']);
     Route::get('analytics', [WorkspaceAnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('calendar', [WorkspaceCoffeeChatController::class, 'calendar'])->name('coffee-chats.calendar');

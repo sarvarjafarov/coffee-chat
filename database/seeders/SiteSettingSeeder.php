@@ -22,9 +22,15 @@ class SiteSettingSeeder extends Seeder
             'footer_headline' => 'Scale your relationship programs',
             'footer_subheadline' => 'CoffeeChat OS becomes the command centre for intros, notes, and follow-through.',
             'footer_note' => 'Crafted for ambitious connectors. © ' . now()->year,
+            'google_search_api_key' => env('GOOGLE_SEARCH_API_KEY'),
+            'google_cse_id' => env('GOOGLE_CSE_ID'),
         ];
 
         foreach ($defaults as $key => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+
             SiteSetting::query()->updateOrCreate(['key' => $key], ['value' => $value]);
         }
     }

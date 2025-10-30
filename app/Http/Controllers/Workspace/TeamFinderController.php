@@ -3,17 +3,18 @@
 namespace App\Http\Controllers\Workspace;
 
 use App\Http\Controllers\Controller;
-use App\Models\Contact;
 use App\Models\CoffeeChat;
-use App\Models\ScrapedContact;
-use App\Services\LeadScraper\LeadScraperManager;
-use App\View\Models\TeamFinderResult;
+use App\Models\Company;
+use App\Models\Contact;
+use App\Services\ContactDiscovery\ContactDiscoveryService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class TeamFinderController extends Controller
 {
@@ -35,101 +36,211 @@ class TeamFinderController extends Controller
             })
             ->toArray();
 
-        $normalized = collect($filters)
-            ->map(static function ($value) {
-                if (!is_string($value) || $value === '') {
-                    return null;
-                }
-
-                return mb_strtolower($value, 'UTF-8');
-            })
-            ->toArray();
-
-        $positionFilter = $normalized['position'] ?? null;
-        $companyFilter = $normalized['company'] ?? null;
-        $cityFilter = $normalized['city'] ?? null;
-        $teamFilter = $normalized['team_name'] ?? null;
-
         $hasFilters = collect($filters)->filter(static fn ($value) => filled($value))->isNotEmpty();
 
-        $contacts = null;
-
-        $teamNameColumnAvailable = Schema::hasColumn('contacts', 'team_name');
-
-        $signature = $this->signature($normalized);
-
-        if ($hasFilters) {
-            $contacts = Contact::query()
-                ->with([
-                    'company',
-                    'coffeeChats' => function ($query) use ($request): void {
-                        $query->where('user_id', $request->user()->id)
-                            ->latest('scheduled_at')
-                            ->latest('created_at');
-                    },
-                ])
-                ->when($positionFilter, static function ($query, string $position): void {
-                    $query->whereRaw('LOWER(position) LIKE ?', ["%{$position}%"]);
-                })
-                ->when($companyFilter, static function ($query, string $companyName): void {
-                    $query->whereHas('company', static function ($companyQuery) use ($companyName): void {
-                        $companyQuery->whereRaw('LOWER(name) LIKE ?', ["%{$companyName}%"]);
-                    });
-                })
-                ->when($cityFilter, static function ($query, string $city): void {
-                    $query->whereRaw('LOWER(location) LIKE ?', ["%{$city}%"]);
-                })
-                ->when($teamFilter, static function ($query, string $teamName) use ($teamNameColumnAvailable): void {
-                    if (! $teamNameColumnAvailable) {
-                        return;
-                    }
-
-                    $query->whereRaw('LOWER(team_name) LIKE ?', ["%{$teamName}%"]);
-                })
-                ->orderBy('name')
-                ->paginate(12)
-                ->withQueryString();
-
-            $this->refreshScrapedContacts($normalized, $signature);
-        }
-
-        $scrapedContacts = $hasFilters
-            ? ScrapedContact::where('search_signature', $signature)
-                ->latest('scraped_at')
-                ->take(25)
-                ->get()
-            : collect();
-
         $results = collect();
+        $recommended = collect();
+        $summary = [
+            'total' => 0,
+            'by_source' => [],
+        ];
+        $diagnostics = collect();
+        $message = null;
 
-        if ($contacts) {
-            $results = $contacts->getCollection()->map(fn ($contact) => new TeamFinderResult('contact', $contact));
+        $readyToSearch = filled($filters['company'] ?? null) && filled($filters['position'] ?? null);
+
+        if ($hasFilters && $readyToSearch) {
+            $discovery = new ContactDiscoveryService();
+            $payload = $discovery->discover([
+                'company' => $filters['company'] ?? null,
+                'position' => $filters['position'] ?? null,
+                'team' => $filters['team_name'] ?? null,
+                'city' => $filters['city'] ?? null,
+            ]);
+            $results = collect($payload['results'] ?? []);
+            $recommended = collect($payload['recommended'] ?? []);
+
+            if ($recommended->isNotEmpty()) {
+                $topIds = $recommended->pluck('uid')->filter();
+                $results = $results->reject(function ($item) use ($topIds) {
+                    return $topIds->contains($item['uid'] ?? null);
+                })->values();
+            }
+
+            $summary = $payload['summary'];
+            $diagnostics = collect($payload['diagnostics'] ?? []);
+        } elseif ($hasFilters) {
+            $message = 'Please provide both a company and a position to discover coffee chat matches.';
         }
-
-        $scrapedContacts->each(function (ScrapedContact $lead) use (&$results) {
-            $results->push(new TeamFinderResult('scraped', null, [
-                'first_name' => $lead->first_name,
-                'last_name' => $lead->last_name,
-                'name' => $lead->name,
-                'position' => $lead->position,
-                'company' => $lead->company,
-                'team' => $lead->team,
-                'email' => $lead->email,
-                'profile_url' => $lead->profile_url,
-                'location' => $lead->location,
-                'source' => $lead->source,
-                'scraped_at' => $lead->scraped_at,
-            ]));
-        });
 
         return view('workspace.team-finder.index', [
             'filters' => $filters,
-            'contacts' => $contacts,
             'hasFilters' => $hasFilters,
-            'teamNameColumnAvailable' => $teamNameColumnAvailable,
             'results' => $results,
-            'scrapeAttempted' => $hasFilters,
+            'recommended' => $recommended,
+            'summary' => $summary,
+            'diagnostics' => $diagnostics,
+            'scrapeAttempted' => $hasFilters && $readyToSearch,
+            'statusMessage' => $message,
         ]);
+    }
+
+    /**
+     * Lightweight JSON search endpoint for the team finder experience.
+     */
+    public function teamFinder(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'company' => ['required', 'string', 'max:255'],
+            'position' => ['required', 'string', 'max:255'],
+            'team' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $filters = collect($validated)->map(fn ($value) => is_string($value) ? trim($value) : $value)->toArray();
+
+        $discovery = new ContactDiscoveryService();
+        $payload = $discovery->discover([
+            'company' => $filters['company'] ?? null,
+            'position' => $filters['position'] ?? null,
+            'team' => $filters['team'] ?? null,
+            'city' => $filters['city'] ?? null,
+        ]);
+
+        $recommended = collect($payload['recommended'] ?? []);
+        $results = collect($payload['results'] ?? []);
+
+        if ($recommended->isNotEmpty()) {
+            $topIds = $recommended->pluck('uid')->filter();
+            $results = $results->reject(function ($item) use ($topIds) {
+                return $topIds->contains($item['uid'] ?? null);
+            })->values();
+        }
+
+        return response()->json([
+            'query' => $filters,
+            'results' => $results,
+            'recommended' => $recommended,
+            'summary' => $payload['summary'] ?? [],
+            'diagnostics' => $payload['diagnostics'] ?? [],
+        ]);
+    }
+
+    public function follow(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'contact' => ['required', 'string'],
+        ]);
+
+        $payload = json_decode($data['contact'], true);
+
+        if (! is_array($payload)) {
+            return back()->withErrors(['contact' => 'We could not process that lead.'])->withInput();
+        }
+
+        $name = trim((string) ($payload['name'] ?? ''));
+
+        if ($name === '') {
+            return back()->withErrors(['contact' => 'This lead is missing a name.'])->withInput();
+        }
+
+        $companyName = trim((string) ($payload['company'] ?? ''));
+        $profileUrl = $payload['url'] ?? $payload['profile_url'] ?? null;
+
+        DB::beginTransaction();
+
+        try {
+            $company = null;
+            if ($companyName !== '') {
+                $company = Company::firstOrCreate(['name' => $companyName]);
+            }
+
+            $contactQuery = Contact::query();
+
+            if ($profileUrl) {
+                $contactQuery->where('linkedin_url', $profileUrl);
+            } else {
+                $contactQuery->where('name', $name);
+                if ($company) {
+                    $contactQuery->where('company_id', $company->id);
+                }
+            }
+
+            $contact = $contactQuery->first();
+
+            if (! $contact) {
+                $contact = Contact::create([
+                    'company_id' => $company?->id,
+                    'name' => $name,
+                    'position' => $payload['role'] ?? null,
+                    'email' => $payload['email'] ?? null,
+                    'linkedin_url' => $profileUrl,
+                    'location' => $payload['location'] ?? null,
+                    'notes' => $payload['snippet'] ?? null,
+                ]);
+            } else {
+                $contact->fill([
+                    'company_id' => $contact->company_id ?: $company?->id,
+                    'position' => $contact->position ?: ($payload['role'] ?? null),
+                    'email' => $contact->email ?: ($payload['email'] ?? null),
+                    'linkedin_url' => $contact->linkedin_url ?: $profileUrl,
+                    'location' => $contact->location ?: ($payload['location'] ?? null),
+                ])->save();
+            }
+
+            $chat = CoffeeChat::create([
+                'user_id' => $user->id,
+                'company_id' => $company?->id,
+                'contact_id' => $contact->id,
+                'position_title' => $payload['role'] ?? null,
+                'status' => 'planned',
+                'is_virtual' => true,
+                'notes' => $this->formatFollowNotes($payload),
+                'extras' => [
+                    'team_finder_source' => $payload['source'] ?? null,
+                ],
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('workspace.coffee-chats.edit', $chat)
+                ->with('status', 'Lead saved to your coffee chat flow.');
+        } catch (\Throwable $exception) {
+            DB::rollBack();
+            report($exception);
+
+            return back()->withErrors(['contact' => 'We could not save this lead.'])->withInput();
+        }
+    }
+
+    protected function formatFollowNotes(array $payload): string
+    {
+        $lines = [];
+
+        if (! empty($payload['source'])) {
+            $lines[] = 'Source: '.Str::of($payload['source'])->replace('_', ' ')->title();
+        }
+
+        if (! empty($payload['snippet'])) {
+            $lines[] = $payload['snippet'];
+        }
+
+        if (! empty($payload['url'])) {
+            $lines[] = 'Profile: '.$payload['url'];
+        }
+
+        if (! empty($payload['location'])) {
+            $lines[] = 'Location: '.$payload['location'];
+        }
+
+        return implode("\n", $lines);
     }
 
     /**
@@ -187,45 +298,5 @@ class TeamFinderController extends Controller
             'cancelled' => 'Cancelled',
             'follow_up_required' => 'Follow-up Required',
         ];
-    }
-
-    protected function signature(array $normalized): string
-    {
-        return md5(json_encode($normalized));
-    }
-
-    protected function refreshScrapedContacts(array $normalized, string $signature): void
-    {
-        $latest = ScrapedContact::where('search_signature', $signature)
-            ->orderByDesc('scraped_at')
-            ->first();
-
-        if ($latest && $latest->scraped_at && $latest->scraped_at->gt(now()->subMinutes(10))) {
-            return;
-        }
-
-        $manager = new LeadScraperManager();
-        $results = $manager->run($normalized);
-
-        ScrapedContact::where('search_signature', $signature)->delete();
-
-        $results->each(function (array $result) use ($signature): void {
-            ScrapedContact::create([
-                'search_signature' => $signature,
-                'source' => $result['source'] ?? 'unknown',
-                'first_name' => $result['first_name'] ?? null,
-                'last_name' => $result['last_name'] ?? null,
-                'name' => $result['name'] ?? null,
-                'position' => $result['position'] ?? null,
-                'company' => $result['company'] ?? null,
-                'team' => $result['team'] ?? null,
-                'email' => $result['email'] ?? null,
-                'profile_url' => $result['profile_url'] ?? null,
-                'location' => $result['location'] ?? null,
-                'avatar_url' => $result['avatar_url'] ?? null,
-                'metadata' => $result['metadata'] ?? null,
-                'scraped_at' => now(),
-            ]);
-        });
     }
 }

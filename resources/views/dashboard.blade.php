@@ -6,6 +6,8 @@
     $surfaceAlt = old('surface_alt', $themeSettings->get('surface_alt', '#e6f6ff'));
     $textPrimary = old('text_primary', $themeSettings->get('text_primary', '#0f172a'));
     $textMuted = old('text_muted', $themeSettings->get('text_muted', '#475569'));
+    $googleApiKey = old('google_search_api_key', $themeSettings->get('google_search_api_key', ''));
+    $googleCseId = old('google_cse_id', $themeSettings->get('google_cse_id', ''));
 @endphp
 
 <x-app-layout>
@@ -100,6 +102,48 @@
                             </div>
                         </div>
                         <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 rounded-full bg-blue-600 text-white font-semibold shadow hover:bg-blue-500 transition">Update theme</button>
+                    </form>
+                </section>
+
+                <section class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 space-y-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Search integrations</h3>
+                        <p class="text-sm text-slate-500 mt-1">Store the Google Custom Search credentials that power the LinkedIn fallback inside Team Finder.</p>
+                    </div>
+                    <form method="POST" action="{{ route('dashboard.search') }}" class="space-y-4">
+                        @csrf
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm font-medium text-slate-600" for="google_search_api_key">Google search API key</label>
+                                <input
+                                    type="text"
+                                    id="google_search_api_key"
+                                    name="google_search_api_key"
+                                    value="{{ $googleApiKey }}"
+                                    class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm focus:border-blue-400 focus:ring focus:ring-blue-100"
+                                    autocomplete="off"
+                                />
+                                @error('google_search_api_key')
+                                    <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-slate-600" for="google_cse_id">Google CSE ID</label>
+                                <input
+                                    type="text"
+                                    id="google_cse_id"
+                                    name="google_cse_id"
+                                    value="{{ $googleCseId }}"
+                                    class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm focus:border-blue-400 focus:ring focus:ring-blue-100"
+                                    autocomplete="off"
+                                />
+                                @error('google_cse_id')
+                                    <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 rounded-full bg-slate-900 text-white font-semibold shadow hover:bg-slate-700 transition">Save search credentials</button>
+                        <p class="text-xs text-slate-400">Only administrators can view or update these credentials. Leave a field blank to clear it.</p>
                     </form>
                 </section>
 
