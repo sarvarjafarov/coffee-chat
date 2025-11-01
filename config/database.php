@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Str;
 
+// Force parse DATABASE_URL for Heroku
+$databaseUrl = parse_url(env('DATABASE_URL') ?: 'postgres://user:pass@localhost:5432/db');
+
 return [
 
     /*
@@ -85,13 +88,12 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', 'laravel'),
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
-            'charset' => env('DB_CHARSET', 'utf8'),
+            'host' => $databaseUrl['host'] ?? env('DB_HOST', '127.0.0.1'),
+            'port' => $databaseUrl['port'] ?? env('DB_PORT', 5432),
+            'database' => ltrim($databaseUrl['path'] ?? '/laravel', '/'),
+            'username' => $databaseUrl['user'] ?? env('DB_USERNAME', 'root'),
+            'password' => $databaseUrl['pass'] ?? env('DB_PASSWORD', ''),
+            'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
