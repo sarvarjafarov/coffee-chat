@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\SiteSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,9 +24,9 @@ class SocialLoginController extends Controller
     {
         $provider = $this->validatedProvider($provider);
 
-        $config = config("services.{$provider}", []);
+        $config = $this->resolveProviderConfig($provider);
 
-        if (blank(data_get($config, 'client_id')) || blank(data_get($config, 'client_secret'))) {
+        if ($config === null) {
             return redirect()
                 ->route('login')
                 ->with('status', $this->displayName($provider).' sign-in is not configured yet. Please contact the workspace admin.');
@@ -52,7 +53,13 @@ class SocialLoginController extends Controller
     {
         $provider = $this->validatedProvider($provider);
 
-        $config = config("services.{$provider}", []);
+        $config = $this->resolveProviderConfig($provider);
+
+        if ($config === null) {
+            return redirect()
+                ->route('login')
+                ->with('status', $this->displayName($provider).' sign-in is not configured yet. Please contact the workspace admin.');
+        }
 
         try {
             $driver = Socialite::driver($provider);
@@ -145,5 +152,60 @@ class SocialLoginController extends Controller
             'linkedin' => 'LinkedIn',
             default => Str::headline($provider),
         };
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    protected function resolveProviderConfig(string $provider): ?array
+    {
+        $config = config("services.{$provider}", []);
+
+        if (! blank(data_get($config, 'client_id')) && ! blank(data_get($config, 'client_secret'))) {
+            return $config;
+        }
+
+        $keys = match ($provider) {
+            'google' => [
+                'client_id' => 'google_client_id',
+                'client_secret' => 'google_client_secret',
+                'redirect' => 'google_redirect_uri',
+            ],
+            'linkedin' => [
+                'client_id' => 'linkedin_client_id',
+                'client_secret' => 'linkedin_client_secret',
+                'redirect' => 'linkedin_redirect_uri',
+            ],
+            default => [],
+        };
+
+        if (empty($keys)) {
+            return null;
+        }
+
+        $settings = SiteSetting::query()
+            ->whereIn('key', array_values($keys))
+            ->pluck('value', 'key');
+
+        if (
+            blank($settings->get($keys['client_id']))
+            || blank($settings->get($keys['client_secret']))
+        ) {
+            return null;
+        }
+
+        $resolved = [
+            'client_id' => $settings->get($keys['client_id']),
+            'client_secret' => $settings->get($keys['client_secret']),
+            'redirect' => $settings->get($keys['redirect'], data_get($config, 'redirect')),
+        ];
+
+        config(["services.{$provider}.client_id" => $resolved['client_id']]);
+        config(["services.{$provider}.client_secret" => $resolved['client_secret']]);
+        if (! blank($resolved['redirect'])) {
+            config(["services.{$provider}.redirect" => $resolved['redirect']]);
+        }
+
+        return config("services.{$provider}", []);
     }
 }

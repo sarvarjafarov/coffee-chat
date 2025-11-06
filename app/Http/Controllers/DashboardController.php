@@ -80,7 +80,11 @@ class DashboardController extends Controller
         ]);
 
         if (Schema::hasTable('site_settings')) {
-            SiteSetting::updateMany($validated);
+            $cleaned = collect($validated)->map(function ($value) {
+                return is_string($value) ? trim($value) : $value;
+            })->toArray();
+
+            SiteSetting::updateMany($cleaned);
         }
 
         return back()->with('status', 'Theme colours updated successfully.');
