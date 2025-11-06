@@ -1270,9 +1270,11 @@
         }
 
         .cta-scale .cta-actions {
-            display: inline-flex;
+            display: flex;
+            flex-wrap: wrap;
             gap: 0.9rem;
             align-items: center;
+            justify-content: center;
         }
 
         .cta-scale .cta-actions .btn {
@@ -1338,7 +1340,13 @@
                 border-radius: 32px;
             }
             .network-grid {
-                gap: 2rem;
+                grid-template-columns: minmax(0, 1fr);
+                gap: 1.6rem;
+                padding: clamp(0.75rem, 4vw, 1.4rem);
+            }
+            .network-left,
+            .network-right {
+                padding: 0;
             }
             .network-steps {
                 gap: 1rem;
@@ -1350,6 +1358,46 @@
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.4rem;
+            }
+            .home-mba-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1.25rem;
+                padding-left: clamp(1rem, 6vw, 1.6rem);
+                padding-right: clamp(1rem, 6vw, 1.6rem);
+            }
+            .home-mba-header .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .home-mba-grid {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 1.25rem;
+                padding-left: clamp(0.9rem, 5vw, 1.6rem);
+                padding-right: clamp(0.9rem, 5vw, 1.6rem);
+            }
+            .home-mba-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.9rem;
+            }
+            .home-mba-footer .action-group {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .cta-scale {
+                border-radius: 32px;
+                padding: clamp(2.4rem, 7vw, 3.2rem) clamp(1.4rem, 6vw, 2.4rem);
+            }
+            .cta-scale-inner {
+                padding: 0;
+                text-align: center;
+            }
+            .cta-scale .cta-actions {
+                width: 100%;
+            }
+            .cta-scale .cta-actions .btn {
+                flex: 1 1 100%;
             }
         }
     </style>
