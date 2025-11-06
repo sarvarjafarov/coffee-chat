@@ -23,6 +23,14 @@ class SocialLoginController extends Controller
     {
         $provider = $this->validatedProvider($provider);
 
+        $config = config("services.{$provider}", []);
+
+        if (blank(data_get($config, 'client_id')) || blank(data_get($config, 'client_secret'))) {
+            return redirect()
+                ->route('login')
+                ->with('status', $this->displayName($provider).' sign-in is not configured yet. Please contact the workspace admin.');
+        }
+
         $driver = Socialite::driver($provider);
 
         if ($provider === 'linkedin') {
@@ -31,15 +39,29 @@ class SocialLoginController extends Controller
             $driver->scopes(['openid', 'profile', 'email']);
         }
 
-        return $driver->redirect();
+        if (filled(data_get($config, 'redirect'))) {
+            $driver->redirectUrl($config['redirect']);
+        }
+
+        return $driver->with([
+            'client_id' => $config['client_id'],
+        ])->redirect();
     }
 
     public function callback(Request $request, string $provider): RedirectResponse
     {
         $provider = $this->validatedProvider($provider);
 
+        $config = config("services.{$provider}", []);
+
         try {
-            $socialUser = Socialite::driver($provider)->stateless()->user();
+            $driver = Socialite::driver($provider);
+
+            if (filled(data_get($config, 'redirect'))) {
+                $driver->redirectUrl($config['redirect']);
+            }
+
+            $socialUser = $driver->stateless()->user();
         } catch (\Throwable $exception) {
             report($exception);
 
