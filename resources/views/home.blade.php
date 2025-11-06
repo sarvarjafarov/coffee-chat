@@ -1316,8 +1316,23 @@
                 border-radius: 40px;
                 padding: clamp(3.6rem, 9vw, 4.8rem) clamp(1.6rem, 6vw, 2.4rem);
             }
+            .hero-actions {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+            .hero-actions .btn {
+                display: inline-flex;
+                align-items: center;
+                width: 100%;
+                justify-content: center;
+            }
             .hero-stats {
                 grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            }
+            .hero-stat-card {
+                text-align: center;
+                padding: 1.1rem 1.2rem;
             }
             .hero-workflow-grid {
                 grid-template-columns: minmax(0, 1fr);
@@ -1335,8 +1350,48 @@
                 display: flex;
                 justify-content: flex-start;
             }
+            .hero-logo-bar {
+                padding: clamp(1.1rem, 5vw, 1.6rem);
+                border-radius: 26px;
+            }
+            .hero-logo-list {
+                justify-content: flex-start;
+                gap: 0.6rem;
+            }
+            .hero-logo-pill {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .hero-timeline-card {
+                padding: clamp(1.2rem, 6vw, 1.6rem);
+                text-align: center;
+            }
+            .hero-timeline-badge {
+                margin: 0 auto;
+            }
+            .hero-timeline-title {
+                font-size: 1.28rem;
+            }
+            .hero-timeline-meta {
+                text-align: center;
+            }
+            .hero-next-chat,
+            .hero-confidence {
+                padding: clamp(1.2rem, 6vw, 1.6rem);
+                text-align: center;
+            }
+            .hero-next-chat-head {
+                justify-content: center;
+            }
+            .hero-next-chat-cta {
+                width: 100%;
+                justify-content: center;
+            }
+            .hero-confidence-footnote {
+                text-align: center;
+            }
             .network-section {
-                padding: clamp(2.4rem, 8vw, 3.2rem);
+                padding: clamp(2.2rem, 7vw, 3rem);
                 border-radius: 32px;
             }
             .network-grid {
@@ -1353,6 +1408,18 @@
             }
             .network-step {
                 padding: 1rem 1.1rem;
+            }
+            .network-pane {
+                padding: clamp(1.1rem, 6vw, 1.5rem);
+                text-align: center;
+            }
+            .network-pane-head {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.6rem;
+            }
+            .network-quote {
+                font-size: 1.05rem;
             }
             .network-metric {
                 flex-direction: column;
@@ -1383,7 +1450,16 @@
             }
             .home-mba-footer .action-group {
                 width: 100%;
-                justify-content: flex-start;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.7rem;
+            }
+            .home-mba-footer .action-group > * {
+                display: inline-flex;
+                align-items: center;
+                width: 100%;
+                justify-content: center;
+                text-align: center;
             }
             .cta-scale {
                 border-radius: 32px;
@@ -1397,7 +1473,18 @@
                 width: 100%;
             }
             .cta-scale .cta-actions .btn {
+                display: inline-flex;
+                align-items: center;
                 flex: 1 1 100%;
+                justify-content: center;
+            }
+            .feature-card {
+                padding: clamp(1.5rem, 6vw, 1.9rem);
+                gap: 0.85rem;
+                text-align: center;
+            }
+            .feature-card .site-link {
+                justify-content: center;
             }
         }
     </style>
