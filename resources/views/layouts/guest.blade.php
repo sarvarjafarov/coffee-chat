@@ -233,6 +233,90 @@
                 flex-wrap: wrap;
             }
 
+            .auth-social {
+                display: grid;
+                gap: 0.75rem;
+            }
+
+            .auth-social-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.6rem;
+                border-radius: 999px;
+                border: 1px solid rgba(148,163,184,0.28);
+                background: rgba(255,255,255,0.96);
+                color: #0f172a;
+                font-weight: 600;
+                padding: 0.75rem 1.45rem;
+                text-decoration: none;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            }
+
+            .auth-social-btn:hover {
+                transform: translateY(-1px);
+                border-color: rgba(14,165,233,0.45);
+                box-shadow: 0 24px 46px -30px rgba(15,23,42,0.18);
+            }
+
+            .auth-social-btn:focus-visible {
+                outline: none;
+                border-color: rgba(14,165,233,0.6);
+                box-shadow: 0 0 0 3px rgba(14,165,233,0.25);
+            }
+
+            .auth-social-icon {
+                display: grid;
+                place-items: center;
+                width: 26px;
+                height: 26px;
+                border-radius: 999px;
+                background: rgba(226,232,240,0.55);
+            }
+
+            .auth-social-btn--google .auth-social-icon {
+                background: rgba(248,250,252,0.95);
+                border: 1px solid rgba(203,213,225,0.6);
+            }
+
+            .auth-social-btn--linkedin .auth-social-icon {
+                background: rgba(10,102,194,0.12);
+                border: 1px solid rgba(96,165,250,0.18);
+            }
+
+            .auth-social-icon-letter {
+                font-weight: 700;
+                font-size: 0.95rem;
+                color: rgba(37,99,235,0.9);
+            }
+
+            .auth-social-btn--google .auth-social-icon-letter {
+                color: #4285f4;
+            }
+
+            .auth-social-btn--linkedin .auth-social-icon-letter {
+                color: #0a66c2;
+            }
+
+            .auth-divider {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                justify-content: center;
+                font-size: 0.78rem;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: rgba(100,116,139,0.7);
+            }
+
+            .auth-divider::before,
+            .auth-divider::after {
+                content: "";
+                flex: 1;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, rgba(148,163,184,0.35), transparent);
+            }
+
             .auth-checkbox {
                 display: inline-flex;
                 align-items: center;

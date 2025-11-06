@@ -3,6 +3,12 @@
         <h2>Create your workspace</h2>
         <p class="auth-lead">Spin up CoffeeChat OS for your cohort or team. Already have an account? <a class="auth-link" href="{{ route('login') }}">Log in</a>.</p>
 
+        @include('auth.partials.social-login', [
+            'googleText' => 'Sign up with Google',
+            'linkedinText' => 'Sign up with LinkedIn',
+            'dividerText' => 'Or create your account with email',
+        ])
+
         <form method="POST" action="{{ route('register') }}" class="auth-form">
             @csrf
 

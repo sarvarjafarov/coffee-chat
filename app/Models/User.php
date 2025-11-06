@@ -26,6 +26,9 @@ class User extends Authenticatable
         'stripe_customer_id',
         'stripe_subscription_id',
         'plan_expires_at',
+        'oauth_provider',
+        'oauth_id',
+        'avatar_url',
     ];
 
     /**

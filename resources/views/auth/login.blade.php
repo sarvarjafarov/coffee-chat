@@ -11,6 +11,12 @@
             <div class="auth-status">{{ session('status') }}</div>
         @endif
 
+        @include('auth.partials.social-login', [
+            'googleText' => 'Sign in with Google',
+            'linkedinText' => 'Sign in with LinkedIn',
+            'dividerText' => 'Or continue with your password',
+        ])
+
         <form method="POST" action="{{ route('login') }}" class="auth-form">
             @csrf
 

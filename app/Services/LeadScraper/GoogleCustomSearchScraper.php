@@ -19,8 +19,8 @@ class GoogleCustomSearchScraper implements ScraperInterface
      */
     public function search(array $filters): array
     {
-        $apiKey = config('services.google.key') ?: SiteSetting::value('google_search_api_key');
-        $cseId = config('services.google.cx') ?: SiteSetting::value('google_cse_id');
+        $apiKey = config('services.google_search.key') ?: SiteSetting::value('google_search_api_key');
+        $cseId = config('services.google_search.cx') ?: SiteSetting::value('google_cse_id');
 
         if (! $apiKey || ! $cseId) {
             return [];
