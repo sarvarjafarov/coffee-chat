@@ -37,6 +37,12 @@ class DashboardController extends Controller
         $settings = array_merge([
             'google_search_api_key' => env('GOOGLE_SEARCH_API_KEY'),
             'google_cse_id' => env('GOOGLE_CSE_ID'),
+            'google_client_id' => config('services.google.client_id'),
+            'google_client_secret' => config('services.google.client_secret'),
+            'google_redirect_uri' => config('services.google.redirect'),
+            'linkedin_client_id' => config('services.linkedin.client_id'),
+            'linkedin_client_secret' => config('services.linkedin.client_secret'),
+            'linkedin_redirect_uri' => config('services.linkedin.redirect'),
         ], $settings);
 
         return view('dashboard', [
@@ -89,12 +95,18 @@ class DashboardController extends Controller
         $validated = $request->validate([
             'google_search_api_key' => ['nullable', 'string', 'max:255'],
             'google_cse_id' => ['nullable', 'string', 'max:255'],
+            'google_client_id' => ['nullable', 'string', 'max:255'],
+            'google_client_secret' => ['nullable', 'string', 'max:255'],
+            'google_redirect_uri' => ['nullable', 'url', 'max:255'],
+            'linkedin_client_id' => ['nullable', 'string', 'max:255'],
+            'linkedin_client_secret' => ['nullable', 'string', 'max:255'],
+            'linkedin_redirect_uri' => ['nullable', 'url', 'max:255'],
         ]);
 
         if (Schema::hasTable('site_settings')) {
             SiteSetting::updateMany($validated);
         }
 
-        return back()->with('status', 'Search integrations updated successfully.');
+        return back()->with('status', 'Integration credentials updated successfully.');
     }
 }

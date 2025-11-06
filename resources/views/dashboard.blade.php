@@ -8,6 +8,14 @@
     $textMuted = old('text_muted', $themeSettings->get('text_muted', '#475569'));
     $googleApiKey = old('google_search_api_key', $themeSettings->get('google_search_api_key', ''));
     $googleCseId = old('google_cse_id', $themeSettings->get('google_cse_id', ''));
+    $googleClientId = old('google_client_id', $themeSettings->get('google_client_id', ''));
+    $googleClientSecret = old('google_client_secret', $themeSettings->get('google_client_secret', ''));
+    $defaultGoogleRedirect = rtrim(config('app.url'), '/').'/auth/google/callback';
+    $googleRedirectUri = old('google_redirect_uri', $themeSettings->get('google_redirect_uri', config('services.google.redirect', $defaultGoogleRedirect)));
+    $linkedinClientId = old('linkedin_client_id', $themeSettings->get('linkedin_client_id', ''));
+    $linkedinClientSecret = old('linkedin_client_secret', $themeSettings->get('linkedin_client_secret', ''));
+    $defaultLinkedinRedirect = rtrim(config('app.url'), '/').'/auth/linkedin/callback';
+    $linkedinRedirectUri = old('linkedin_redirect_uri', $themeSettings->get('linkedin_redirect_uri', config('services.linkedin.redirect', $defaultLinkedinRedirect)));
 @endphp
 
 <x-app-layout>
@@ -142,7 +150,102 @@
                                 @enderror
                             </div>
                         </div>
-                        <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 rounded-full bg-slate-900 text-white font-semibold shadow hover:bg-slate-700 transition">Save search credentials</button>
+
+                        <div class="pt-4 border-t border-slate-100 space-y-4">
+                            <div>
+                                <h4 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Social sign-in</h4>
+                                <p class="text-sm text-slate-500 mt-1">Manage the OAuth credentials used for Google and LinkedIn sign-in buttons on the marketing site.</p>
+                            </div>
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium text-slate-600" for="google_client_id">Google client ID</label>
+                                    <input
+                                        type="text"
+                                        id="google_client_id"
+                                        name="google_client_id"
+                                        value="{{ $googleClientId }}"
+                                        class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm focus:border-blue-400 focus:ring focus:ring-blue-100"
+                                        autocomplete="off"
+                                    />
+                                    @error('google_client_id')
+                                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium text-slate-600" for="google_client_secret">Google client secret</label>
+                                    <input
+                                        type="text"
+                                        id="google_client_secret"
+                                        name="google_client_secret"
+                                        value="{{ $googleClientSecret }}"
+                                        class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm focus:border-blue-400 focus:ring focus:ring-blue-100"
+                                        autocomplete="off"
+                                    />
+                                    @error('google_client_secret')
+                                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-slate-600" for="google_redirect_uri">Google redirect URI</label>
+                                <input
+                                    type="url"
+                                    id="google_redirect_uri"
+                                    name="google_redirect_uri"
+                                    value="{{ $googleRedirectUri }}"
+                                    class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm focus:border-blue-400 focus:ring focus:ring-blue-100"
+                                />
+                                <p class="text-xs text-slate-400 mt-1">Use the value registered in the Google Cloud console. Default: <code>{{ $defaultGoogleRedirect }}</code></p>
+                                @error('google_redirect_uri')
+                                    <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium text-slate-600" for="linkedin_client_id">LinkedIn client ID</label>
+                                    <input
+                                        type="text"
+                                        id="linkedin_client_id"
+                                        name="linkedin_client_id"
+                                        value="{{ $linkedinClientId }}"
+                                        class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm focus:border-blue-400 focus:ring focus:ring-blue-100"
+                                        autocomplete="off"
+                                    />
+                                    @error('linkedin_client_id')
+                                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium text-slate-600" for="linkedin_client_secret">LinkedIn client secret</label>
+                                    <input
+                                        type="text"
+                                        id="linkedin_client_secret"
+                                        name="linkedin_client_secret"
+                                        value="{{ $linkedinClientSecret }}"
+                                        class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm focus:border-blue-400 focus:ring focus:ring-blue-100"
+                                        autocomplete="off"
+                                    />
+                                    @error('linkedin_client_secret')
+                                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-slate-600" for="linkedin_redirect_uri">LinkedIn redirect URI</label>
+                                <input
+                                    type="url"
+                                    id="linkedin_redirect_uri"
+                                    name="linkedin_redirect_uri"
+                                    value="{{ $linkedinRedirectUri }}"
+                                    class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm focus:border-blue-400 focus:ring focus:ring-blue-100"
+                                />
+                                <p class="text-xs text-slate-400 mt-1">Set this to the exact OAuth redirect URL configured in LinkedIn. Default: <code>{{ $defaultLinkedinRedirect }}</code></p>
+                                @error('linkedin_redirect_uri')
+                                    <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-3 rounded-full bg-slate-900 text-white font-semibold shadow hover:bg-slate-700 transition">Save integration credentials</button>
                         <p class="text-xs text-slate-400">Only administrators can view or update these credentials. Leave a field blank to clear it.</p>
                     </form>
                 </section>
