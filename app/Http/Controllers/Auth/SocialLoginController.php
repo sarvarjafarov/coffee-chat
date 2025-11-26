@@ -34,16 +34,20 @@ class SocialLoginController extends Controller
 
         $driver = Socialite::driver($provider);
 
-        // LinkedIn app is configured for OpenID Connect; request standard OIDC scopes.
-        $driver->scopes(['openid', 'profile', 'email']);
+        // LinkedIn app is configured for OpenID Connect; request only OIDC scopes explicitly.
+        $driver->setScopes(['openid', 'profile', 'email'])
+            ->with(['scope' => 'openid profile email']);
 
-        $redirectUrl = data_get($config, 'redirect') ?: $this->callbackUrl($provider);
-
-        if ($redirectUrl) {
-            $driver->redirectUrl($redirectUrl);
+        $redirectUrl = data_get($config, 'redirect');
+        if (! $redirectUrl) {
+            return redirect()->route('login')->with('status', 'LinkedIn sign-in is not configured yet. Please contact the workspace admin.');
         }
 
-        return $driver->redirect();
+        $driver->redirectUrl($redirectUrl);
+
+        return $driver->with([
+            'client_id' => $config['client_id'],
+        ])->redirect();
     }
 
     public function callback(Request $request, string $provider): RedirectResponse
@@ -61,10 +65,11 @@ class SocialLoginController extends Controller
         try {
             $driver = Socialite::driver($provider);
 
-            $redirectUrl = data_get($config, 'redirect') ?: $this->callbackUrl($provider);
-            if ($redirectUrl) {
-                $driver->redirectUrl($redirectUrl);
+            $redirectUrl = data_get($config, 'redirect');
+            if (! $redirectUrl) {
+                return redirect()->route('login')->with('status', 'LinkedIn sign-in is not configured yet. Please contact the workspace admin.');
             }
+            $driver->redirectUrl($redirectUrl);
 
             $socialUser = $driver->stateless()->user();
         } catch (\Throwable $exception) {
