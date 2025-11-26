@@ -1,6 +1,10 @@
-@php($elements = $paginator->elements())
+@php
+    $isPaginator = $paginator instanceof \Illuminate\Pagination\LengthAwarePaginator
+        || $paginator instanceof \Illuminate\Pagination\Paginator;
+    $elements = $isPaginator ? $paginator->elements() : [];
+@endphp
 
-@if ($paginator->hasPages())
+@if ($isPaginator && $paginator->hasPages())
     <div class="workspace-pagination">
         <div class="workspace-pagination__meta">
             Showing
