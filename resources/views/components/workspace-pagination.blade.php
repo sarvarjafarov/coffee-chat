@@ -1,3 +1,5 @@
+@php($elements = $paginator->elements())
+
 @if ($paginator->hasPages())
     <div class="workspace-pagination">
         <div class="workspace-pagination__meta">
