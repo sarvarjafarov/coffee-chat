@@ -143,6 +143,11 @@
             border-radius: 24px;
             padding: 1.6rem;
             box-shadow: 0 26px 54px -42px rgba(15,23,42,0.2);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .workspace-metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 36px 70px -52px rgba(15,23,42,0.25);
         }
         .workspace-metric-card::after {
             content: "";
@@ -150,6 +155,17 @@
             inset: auto -25% -40% -25%;
             height: 60%;
             background: radial-gradient(60% 90% at 50% 100%, rgba(14,165,233,0.12), transparent 70%);
+        }
+        .workspace-metric-card--accent {
+            background: linear-gradient(180deg, #ffffff 0%, rgba(241,248,255,0.94) 100%);
+            border: 1px solid rgba(125,211,252,0.35);
+            box-shadow: 0 32px 68px -50px rgba(14,165,233,0.35);
+        }
+        .workspace-metric-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
         }
         .workspace-eyebrow {
             display: inline-flex;

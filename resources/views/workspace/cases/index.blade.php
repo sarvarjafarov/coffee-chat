@@ -19,26 +19,34 @@
 
     <div class="workspace-section">
         <div class="workspace-metrics">
-            <div class="workspace-metric-card">
-                <span class="workspace-eyebrow">Total sessions</span>
-                <span class="workspace-metric-value">{{ $totalSessions }}</span>
+            <div class="workspace-metric-card workspace-metric-card--accent">
+                <div class="workspace-metric-top">
+                    <span class="workspace-eyebrow">Total sessions</span>
+                    <span class="workspace-metric-value">{{ $totalSessions }}</span>
+                </div>
                 <p class="text-subtle mb-0 mt-2">Cases you have logged so far.</p>
             </div>
-            <div class="workspace-metric-card">
-                <span class="workspace-eyebrow">Completed</span>
-                <span class="workspace-metric-value">{{ $completedSessions }}</span>
+            <div class="workspace-metric-card workspace-metric-card--accent">
+                <div class="workspace-metric-top">
+                    <span class="workspace-eyebrow">Completed</span>
+                    <span class="workspace-metric-value">{{ $completedSessions }}</span>
+                </div>
                 <p class="text-subtle mb-0 mt-2">Closed out with reflection and next steps.</p>
             </div>
-            <div class="workspace-metric-card">
-                <span class="workspace-eyebrow">Planned</span>
-                <span class="workspace-metric-value">{{ $plannedSessions }}</span>
+            <div class="workspace-metric-card workspace-metric-card--accent">
+                <div class="workspace-metric-top">
+                    <span class="workspace-eyebrow">Planned</span>
+                    <span class="workspace-metric-value">{{ $plannedSessions }}</span>
+                </div>
                 <p class="text-subtle mb-0 mt-2">Queued cases on your calendar.</p>
             </div>
-            <div class="workspace-metric-card">
-                <span class="workspace-eyebrow">Avg self-score</span>
-                <span class="workspace-metric-value">
-                    {{ $overallScore !== null ? $overallScore : '—' }}
-                </span>
+            <div class="workspace-metric-card workspace-metric-card--accent">
+                <div class="workspace-metric-top">
+                    <span class="workspace-eyebrow">Avg self-score</span>
+                    <span class="workspace-metric-value">
+                        {{ $overallScore !== null ? $overallScore : '—' }}
+                    </span>
+                </div>
                 <p class="text-subtle mb-0 mt-2">Mean across structure, math, insight, and communication.</p>
             </div>
         </div>

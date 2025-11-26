@@ -8,6 +8,7 @@ use App\Models\SiteSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -40,9 +41,8 @@ class SocialLoginController extends Controller
             $driver->scopes(['openid', 'profile', 'email']);
         }
 
-        if (filled(data_get($config, 'redirect'))) {
-            $driver->redirectUrl($config['redirect']);
-        }
+        $redirectUrl = data_get($config, 'redirect') ?: $this->callbackUrl($provider);
+        $driver->redirectUrl($redirectUrl);
 
         return $driver->with([
             'client_id' => $config['client_id'],
@@ -64,9 +64,8 @@ class SocialLoginController extends Controller
         try {
             $driver = Socialite::driver($provider);
 
-            if (filled(data_get($config, 'redirect'))) {
-                $driver->redirectUrl($config['redirect']);
-            }
+            $redirectUrl = data_get($config, 'redirect') ?: $this->callbackUrl($provider);
+            $driver->redirectUrl($redirectUrl);
 
             $socialUser = $driver->stateless()->user();
         } catch (\Throwable $exception) {
@@ -207,5 +206,11 @@ class SocialLoginController extends Controller
         }
 
         return config("services.{$provider}", []);
+    }
+
+    protected function callbackUrl(string $provider): string
+    {
+        // Build callback based on the current app URL to avoid OAuth redirect mismatch (e.g., http vs https).
+        return URL::to('/auth/'.$provider.'/callback');
     }
 }
