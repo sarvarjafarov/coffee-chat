@@ -1,5 +1,11 @@
-@if (($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator) || ($paginator instanceof \Illuminate\Pagination\Paginator))
-    @php($elements = $paginator->elements())
+@php
+    $canPaginate = $paginator instanceof \Illuminate\Pagination\LengthAwarePaginator
+        || $paginator instanceof \Illuminate\Pagination\Paginator;
+    $hasElementsMethod = $canPaginate && method_exists($paginator, 'elements');
+    $elements = $hasElementsMethod ? $paginator->elements() : [];
+@endphp
+
+@if ($canPaginate && $hasElementsMethod && $paginator->hasPages())
     @if ($paginator->hasPages())
         <div class="workspace-pagination">
             <div class="workspace-pagination__meta">
