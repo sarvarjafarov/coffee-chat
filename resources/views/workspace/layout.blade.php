@@ -63,40 +63,58 @@
             box-shadow: 0 20px 40px -24px rgba(14,165,233,0.35);
         }
         .workspace-nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            padding: 0.85rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.65rem;
+            padding: 1rem;
             margin-bottom: clamp(2.4rem, 5vw, 3.2rem);
-            border-radius: 999px;
-            background: rgba(255,255,255,0.86);
+            border-radius: 22px;
+            background:
+                radial-gradient(90% 120% at 20% 20%, rgba(59,130,246,0.06), transparent 60%),
+                linear-gradient(135deg, rgba(255,255,255,0.94), rgba(255,255,255,0.86));
             border: 1px solid rgba(148,163,184,0.16);
-            box-shadow: 0 32px 70px -48px rgba(15,23,42,0.22);
+            box-shadow: 0 26px 58px -40px rgba(15,23,42,0.3);
         }
         .workspace-nav a {
             display: inline-flex;
             align-items: center;
-            gap: 0.45rem;
-            padding: 0.55rem 1.4rem;
-            border-radius: 999px;
-            border: 1px solid transparent;
-            background: transparent;
-            color: rgba(51,65,85,0.78);
-            font-weight: 600;
+            gap: 0.65rem;
+            padding: 0.9rem 1rem;
+            border-radius: 16px;
+            border: 1px solid rgba(148,163,184,0.14);
+            background: rgba(255,255,255,0.92);
+            color: rgba(30,41,59,0.8);
+            font-weight: 650;
             text-decoration: none;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            letter-spacing: 0.01em;
+            box-shadow: 0 1px 0 rgba(255,255,255,0.8), 0 10px 24px -18px rgba(15,23,42,0.5);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
         }
         .workspace-nav a i {
-            font-size: 1.1rem;
-            color: rgba(14,165,233,0.78);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            background: linear-gradient(145deg, rgba(14,165,233,0.14), rgba(14,165,233,0.05));
+            box-shadow: inset 0 0 0 1px rgba(14,165,233,0.18);
+            color: rgba(14,165,233,0.9);
+            font-size: 1.05rem;
         }
-        .workspace-nav a:hover,
+        .workspace-nav a:hover {
+            color: var(--accent-strong);
+            border-color: rgba(14,165,233,0.3);
+            background: rgba(236,249,255,0.95);
+            box-shadow: 0 12px 30px -18px rgba(14,165,233,0.45);
+            transform: translateY(-1px);
+        }
         .workspace-nav a.active {
             color: var(--accent-strong);
-            border-color: rgba(14,165,233,0.32);
-            background: rgba(14,165,233,0.12);
-            box-shadow: 0 26px 48px -32px rgba(14,165,233,0.35);
-            transform: translateY(-2px);
+            border-color: rgba(14,165,233,0.38);
+            background: linear-gradient(135deg, rgba(236,249,255,0.98), rgba(221,242,255,0.92));
+            box-shadow: 0 14px 34px -18px rgba(14,165,233,0.55);
+            transform: translateY(-1px);
         }
         .workspace-section {
             margin-bottom: clamp(2.1rem, 4vw, 3rem);
@@ -196,6 +214,91 @@
         }
         .workspace-table .text-subtle {
             color: rgba(100,116,139,0.78) !important;
+        }
+        .workspace-pagination {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.8rem;
+            margin-top: 1.6rem;
+            padding: 0.9rem 1rem;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.86);
+            border: 1px solid rgba(148,163,184,0.18);
+            box-shadow: 0 22px 48px -36px rgba(15,23,42,0.25);
+        }
+        .workspace-pagination__meta {
+            color: rgba(71,85,105,0.85);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .workspace-pagination__controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .workspace-pagination .page-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 0.9rem;
+            border-radius: 12px;
+            border: 1px solid rgba(148,163,184,0.35);
+            background: linear-gradient(180deg, #fff, rgba(248,250,252,0.95));
+            color: rgba(30,41,59,0.85);
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.16s ease;
+        }
+        .workspace-pagination .page-btn:hover {
+            border-color: rgba(14,165,233,0.45);
+            box-shadow: 0 10px 28px -16px rgba(14,165,233,0.35);
+            color: var(--accent-strong);
+            transform: translateY(-1px);
+        }
+        .workspace-pagination .page-btn.disabled {
+            pointer-events: none;
+            opacity: 0.45;
+            background: rgba(241,245,249,0.8);
+        }
+        .workspace-pagination .page-btn .mdi {
+            font-size: 1rem;
+        }
+        .workspace-pagination .page-numbers {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .workspace-pagination .page-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 38px;
+            padding: 0.45rem 0.7rem;
+            border-radius: 10px;
+            border: 1px solid rgba(148,163,184,0.35);
+            background: rgba(255,255,255,0.96);
+            color: rgba(30,41,59,0.82);
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.16s ease;
+        }
+        .workspace-pagination .page-number:hover {
+            border-color: rgba(14,165,233,0.4);
+            color: var(--accent-strong);
+            transform: translateY(-1px);
+        }
+        .workspace-pagination .page-number.active {
+            background: linear-gradient(135deg, rgba(236,249,255,0.98), rgba(221,242,255,0.92));
+            border-color: rgba(14,165,233,0.5);
+            color: var(--accent-strong);
+            box-shadow: 0 12px 26px -18px rgba(14,165,233,0.38);
+        }
+        .workspace-pagination .page-number.disabled {
+            opacity: 0.5;
+            pointer-events: none;
         }
         .workspace-chip {
             display: inline-flex;

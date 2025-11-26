@@ -164,7 +164,7 @@
         </table>
     </div>
 
-    <div class="mt-4 d-flex justify-content-center">
-        {{ $interviews->links() }}
+    <div>
+        @include('components.workspace-pagination', ['paginator' => $interviews])
     </div>
 @endsection

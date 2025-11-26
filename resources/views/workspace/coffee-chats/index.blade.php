@@ -18,6 +18,62 @@
     @endif
 
     <style>
+        .coffee-table {
+            border-radius: 26px;
+            overflow: hidden;
+            background: linear-gradient(180deg, #ffffff 0%, rgba(247,250,255,0.96) 100%);
+            border: 1px solid rgba(148,163,184,0.16);
+            box-shadow: 0 34px 74px -54px rgba(15,23,42,0.25);
+        }
+        .coffee-table thead th {
+            background: linear-gradient(90deg, rgba(236,245,255,0.9), rgba(246,252,255,0.9));
+            letter-spacing: 0.16em;
+        }
+        .coffee-table tbody tr {
+            transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+        }
+        .coffee-table tbody tr:hover {
+            background: rgba(236,247,255,0.75);
+            transform: translateY(-1px);
+            box-shadow: inset 0 0 0 999px rgba(14,165,233,0.03);
+        }
+        .coffee-contact {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            min-width: 220px;
+        }
+        .coffee-contact .name {
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.25;
+        }
+        .coffee-contact .meta {
+            color: rgba(71,85,105,0.78);
+            font-size: 0.9rem;
+        }
+        .coffee-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.75rem;
+            border-radius: 999px;
+            background: rgba(15,23,42,0.04);
+            color: rgba(30,41,59,0.82);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .coffee-chip.status-planned { background: rgba(14,165,233,0.12); color: rgba(14,165,233,0.9); }
+        .coffee-chip.status-completed { background: rgba(34,197,94,0.12); color: rgba(34,197,94,0.9); }
+        .coffee-chip.status-cancelled { background: rgba(248,113,113,0.12); color: rgba(248,113,113,0.9); }
+        .coffee-chip.status-follow_up_required { background: rgba(234,179,8,0.16); color: rgba(202,138,4,0.9); }
+        .coffee-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            color: rgba(71,85,105,0.78);
+            font-weight: 600;
+        }
         .coffee-chat-manage-link {
             display: inline-flex;
             align-items: center;
@@ -75,7 +131,7 @@
         </div>
     @endif
 
-    <div class="workspace-table workspace-section">
+    <div class="workspace-table workspace-section coffee-table">
         <table class="table align-middle mb-0">
             <thead>
                 <tr>
@@ -96,39 +152,53 @@
                     <tr>
                         <td>
                             @if($chat->scheduled_at)
-                                <span class="fw-semibold d-block">{{ $chat->scheduled_at->format('M d, Y') }}</span>
-                                <small class="text-subtle">{{ $chat->scheduled_at->format('H:i') }} {{ $chat->time_zone }}</small>
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="fw-semibold">{{ $chat->scheduled_at->format('M d, Y') }}</span>
+                                    <small class="text-subtle">{{ $chat->scheduled_at->format('H:i') }} {{ $chat->time_zone }}</small>
+                                </div>
                             @else
                                 <span class="text-subtle">—</span>
                             @endif
                         </td>
-                        <td>{{ $chat->company?->name ?? '—' }}</td>
+                        <td>
+                            <span class="coffee-meta">
+                                <span class="mdi mdi-domain"></span>
+                                {{ $chat->company?->name ?? '—' }}
+                            </span>
+                        </td>
                         <td>
                             @if($chat->contact)
-                                <span class="fw-semibold d-block">{{ $chat->contact->name }}</span>
-                                <a href="{{ route('workspace.coffee-chats.edit', $chat) }}" class="coffee-chat-manage-link">
-                                    <span class="mdi mdi-pencil-outline"></span>
-                                    Manage
-                                </a>
+                                <div class="coffee-contact">
+                                    <span class="name">{{ $chat->contact->name }}</span>
+                                    @if($chat->position_title)
+                                        <span class="meta">{{ $chat->position_title }}</span>
+                                    @endif
+                                    <a href="{{ route('workspace.coffee-chats.edit', $chat) }}" class="coffee-chat-manage-link">
+                                        <span class="mdi mdi-pencil-outline"></span>
+                                        Manage
+                                    </a>
+                                </div>
                             @else
                                 <span class="text-subtle">—</span>
                             @endif
                         </td>
                         <td>
-                            <span class="badge-soft">{{ $statusOptions[$chat->status] ?? $chat->status }}</span>
+                            <span class="coffee-chip status-{{ $chat->status }}">
+                                {{ $statusOptions[$chat->status] ?? $chat->status }}
+                            </span>
                         </td>
                         <td>
                             @forelse($chat->channels as $channel)
-                                <span class="badge-channel">{{ $channel->label }}</span>
+                                <span class="coffee-chip">{{ $channel->label }}</span>
                             @empty
                                 <span class="text-subtle">—</span>
                             @endforelse
                         </td>
                         <td>
                             @if($chat->rating)
-                                <span class="workspace-chip">
-                                    <span class="count">{{ $chat->rating }}</span>
-                                    <span>/5</span>
+                                <span class="coffee-chip">
+                                    <span class="mdi mdi-star-outline"></span>
+                                    {{ $chat->rating }}/5
                                 </span>
                             @else
                                 <span class="text-subtle">—</span>
@@ -174,7 +244,7 @@
         </table>
     </div>
 
-    <div class="mt-4 d-flex justify-content-center">
-        {{ $chats->links() }}
+    <div>
+        @include('components.workspace-pagination', ['paginator' => $chats])
     </div>
 @endsection
