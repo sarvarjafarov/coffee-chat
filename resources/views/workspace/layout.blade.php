@@ -291,6 +291,14 @@
                 <i class="mdi mdi-coffee-outline"></i>
                 <span>Coffee chats</span>
             </a>
+            <a href="{{ route('workspace.cases.index') }}" class="{{ request()->routeIs('workspace.cases.*') ? 'active' : '' }}">
+                <i class="mdi mdi-clipboard-text-outline"></i>
+                <span>Case practice</span>
+            </a>
+            <a href="{{ route('workspace.mock-interviews.index') }}" class="{{ request()->routeIs('workspace.mock-interviews.*') ? 'active' : '' }}">
+                <i class="mdi mdi-video-outline"></i>
+                <span>Mock interviews</span>
+            </a>
             <a href="{{ route('workspace.coffee-chats.calendar') }}" class="{{ request()->routeIs('workspace.coffee-chats.calendar') ? 'active' : '' }}">
                 <i class="mdi mdi-calendar-month-outline"></i>
                 <span>Calendar</span>
