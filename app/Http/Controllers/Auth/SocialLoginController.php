@@ -35,11 +35,8 @@ class SocialLoginController extends Controller
 
         $driver = Socialite::driver($provider);
 
-        if ($provider === 'linkedin') {
-            $driver->scopes(['r_liteprofile', 'r_emailaddress']);
-        } else {
-            $driver->scopes(['openid', 'profile', 'email']);
-        }
+        // LinkedIn app is configured for OpenID Connect; request standard OIDC scopes.
+        $driver->scopes(['openid', 'profile', 'email']);
 
         $redirectUrl = data_get($config, 'redirect') ?: $this->callbackUrl($provider);
         $driver->redirectUrl($redirectUrl);
