@@ -9,8 +9,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Artisan::command('coffee-chats:send-reminders', SendCoffeeChatReminders::class)
-    ->purpose('Send reminder emails for coffee chats happening tomorrow.');
+Artisan::command('coffee-chats:send-reminders', function () {
+    return app(SendCoffeeChatReminders::class)->handle();
+})->purpose('Send reminder emails for coffee chats happening tomorrow.');
 
 Schedule::command('coffee-chats:send-reminders')
     ->dailyAt('08:00')
