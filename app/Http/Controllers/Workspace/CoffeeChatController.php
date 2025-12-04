@@ -39,6 +39,14 @@ class CoffeeChatController extends Controller
             }
         }
 
+        $nextReminderChat = CoffeeChat::with(['company', 'contact'])
+            ->where('user_id', auth()->id())
+            ->where('status', 'planned')
+            ->whereNotNull('scheduled_at')
+            ->whereBetween('scheduled_at', [Carbon::now(), Carbon::now()->addDays(3)])
+            ->orderBy('scheduled_at')
+            ->first();
+
         return view('workspace.coffee-chats.index', [
             'chats' => $chats,
             'statusOptions' => $this->statusOptions(),
@@ -47,6 +55,7 @@ class CoffeeChatController extends Controller
             'completedChats' => $allChats->where('status', 'completed')->count(),
             'activeChannels' => count($channelCounts),
             'statusCounts' => $statusCounts,
+            'nextReminderChat' => $nextReminderChat,
         ]);
     }
 
