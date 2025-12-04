@@ -8,6 +8,8 @@ use App\Models\CoffeeChat;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\User;
+use App\Services\AchievementService;
+use App\Services\CoffeeChatProgressService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,6 +18,12 @@ use Illuminate\View\View;
 
 class CoffeeChatController extends Controller
 {
+    public function __construct(
+        protected CoffeeChatProgressService $progressService,
+        protected AchievementService $achievementService
+    ) {
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -90,9 +98,17 @@ class CoffeeChatController extends Controller
     {
         $data = $this->validatedData($request);
 
+        [$data, $xpDelta] = $this->progressService->applyCompletionState(null, $data);
+
         $coffeeChat = CoffeeChat::create($data);
 
         $coffeeChat->channels()->sync($request->input('channels', []));
+
+        $chatOwner = User::find($data['user_id']);
+        if ($chatOwner) {
+            $this->progressService->applyXpDelta($chatOwner, $xpDelta);
+            $this->achievementService->evaluateAndUnlock($chatOwner);
+        }
 
         return redirect()->route('admin.coffee-chats.show', $coffeeChat)
             ->with('status', 'Coffee chat logged successfully.');
@@ -148,9 +164,17 @@ class CoffeeChatController extends Controller
             $data['reminder_sent_at'] = null;
         }
 
+        [$data, $xpDelta] = $this->progressService->applyCompletionState($coffeeChat, $data);
+
         $coffeeChat->update($data);
 
         $coffeeChat->channels()->sync($request->input('channels', []));
+
+        $chatOwner = $coffeeChat->user ?? User::find($coffeeChat->user_id);
+        if ($chatOwner) {
+            $this->progressService->applyXpDelta($chatOwner, $xpDelta);
+            $this->achievementService->evaluateAndUnlock($chatOwner);
+        }
 
         return redirect()->route('admin.coffee-chats.show', $coffeeChat)
             ->with('status', 'Coffee chat updated successfully.');

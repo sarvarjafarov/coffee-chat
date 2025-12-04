@@ -31,6 +31,7 @@ class CoffeeChat extends Model
         'rating',
         'extras',
         'reminder_sent_at',
+        'completed_at',
     ];
 
     protected $casts = [
@@ -40,6 +41,7 @@ class CoffeeChat extends Model
         'rating' => 'integer',
         'extras' => 'array',
         'reminder_sent_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

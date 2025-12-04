@@ -8,6 +8,8 @@ use App\Models\CoffeeChat;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\WorkspaceField;
+use App\Services\AchievementService;
+use App\Services\CoffeeChatProgressService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -16,6 +18,12 @@ use Illuminate\View\View;
 
 class CoffeeChatController extends Controller
 {
+    public function __construct(
+        protected CoffeeChatProgressService $progressService,
+        protected AchievementService $achievementService
+    ) {
+    }
+
     public function index(): View
     {
         $dynamicFields = WorkspaceField::formFields();
@@ -31,6 +39,7 @@ class CoffeeChatController extends Controller
             ->get();
 
         $statusCounts = $allChats->groupBy('status')->map->count();
+        $lastCompletedAt = $allChats->where('status', 'completed')->pluck('completed_at')->filter()->sortDesc()->first();
 
         $channelCounts = [];
         foreach ($allChats as $chatItem) {
@@ -56,6 +65,10 @@ class CoffeeChatController extends Controller
             'activeChannels' => count($channelCounts),
             'statusCounts' => $statusCounts,
             'nextReminderChat' => $nextReminderChat,
+            'progressMetrics' => $this->progressService->metrics(auth()->user()),
+            'achievements' => $this->achievementService->unlocked(auth()->user()),
+            'newAchievements' => session('new_achievements', []),
+            'nudges' => $this->nudges(auth()->user(), $nextReminderChat, $lastCompletedAt),
         ]);
     }
 
@@ -90,7 +103,7 @@ class CoffeeChatController extends Controller
         $company = $this->resolveCompany($data);
         $contact = $this->resolveContact($data, $company);
 
-        $chat = CoffeeChat::create([
+        $createPayload = [
             'user_id' => $user->id,
             'company_id' => $company?->id,
             'contact_id' => $contact?->id,
@@ -107,9 +120,21 @@ class CoffeeChatController extends Controller
             'notes' => $data['notes'] ?? null,
             'rating' => $data['rating'] ?? null,
             'extras' => $data['extras'] ?? null,
-        ]);
+            'completed_at' => null,
+        ];
+
+        [$createPayload, $xpDelta] = $this->progressService->applyCompletionState(null, $createPayload, $user);
+
+        $chat = CoffeeChat::create($createPayload);
 
         $chat->channels()->sync($data['channels'] ?? []);
+
+        $this->progressService->applyXpDelta($user, $xpDelta);
+
+        $newAchievements = $this->achievementService->evaluateAndUnlock($user);
+        if (! empty($newAchievements)) {
+            session()->flash('new_achievements', $newAchievements);
+        }
 
         return redirect()->route('workspace.coffee-chats.index')
             ->with('status', 'Coffee chat logged successfully.');
@@ -164,9 +189,18 @@ class CoffeeChatController extends Controller
             $updatePayload['reminder_sent_at'] = null;
         }
 
+        [$updatePayload, $xpDelta] = $this->progressService->applyCompletionState($coffeeChat, $updatePayload, $request->user());
+
         $coffeeChat->update($updatePayload);
 
         $coffeeChat->channels()->sync($data['channels'] ?? []);
+
+        $this->progressService->applyXpDelta($request->user(), $xpDelta);
+
+        $newAchievements = $this->achievementService->evaluateAndUnlock($request->user());
+        if (! empty($newAchievements)) {
+            session()->flash('new_achievements', $newAchievements);
+        }
 
         return redirect()->route('workspace.coffee-chats.index')
             ->with('status', 'Coffee chat updated successfully.');
@@ -423,6 +457,39 @@ class CoffeeChatController extends Controller
             'cancelled' => 'Cancelled',
             'follow_up_required' => 'Follow-up Required',
         ];
+    }
+
+    protected function nudges($user, ?CoffeeChat $nextReminderChat, $lastCompletedAt): array
+    {
+        $metrics = $this->progressService->metrics($user);
+        $nudges = [];
+        $now = Carbon::now(config('app.timezone'));
+
+        if (($metrics['weekly_goal'] ?? 0) > 0 && ($metrics['weekly_remaining'] ?? 0) > 0 && $now->dayOfWeekIso >= 4) {
+            $nudges[] = [
+                'title' => 'You are close to your weekly target',
+                'body' => "Just {$metrics['weekly_remaining']} more chat(s) to hit {$metrics['weekly_goal']} this week.",
+            ];
+        }
+
+        if ($metrics['current_streak'] ?? 0) {
+            $daysSince = $lastCompletedAt ? $lastCompletedAt->diffInDays($now->copy()->startOfDay()) : null;
+            if ($daysSince !== null && $daysSince >= 1) {
+                $nudges[] = [
+                    'title' => 'Protect your streak',
+                    'body' => 'Log a chat today to keep the streak alive.',
+                ];
+            }
+        }
+
+        if (! $nextReminderChat && ($metrics['weekly_remaining'] ?? 0) > 0) {
+            $nudges[] = [
+                'title' => 'Schedule your next chat',
+                'body' => 'No upcoming chats are scheduled. Add one to stay on pace.',
+            ];
+        }
+
+        return $nudges;
     }
 
     protected function optionValues($field)

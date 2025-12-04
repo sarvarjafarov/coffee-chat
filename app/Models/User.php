@@ -29,6 +29,8 @@ class User extends Authenticatable
         'oauth_provider',
         'oauth_id',
         'avatar_url',
+        'xp_total',
+        'weekly_chat_goal',
     ];
 
     /**
@@ -53,6 +55,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'plan_expires_at' => 'datetime',
+            'xp_total' => 'integer',
+            'weekly_chat_goal' => 'integer',
         ];
     }
 

@@ -114,6 +114,114 @@
         </div>
     </div>
 
+    @if(!empty($nudges))
+        <div class="workspace-section">
+            <div class="workspace-card">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="mdi mdi-lightbulb-outline text-warning"></span>
+                    <span class="workspace-eyebrow">Keep momentum</span>
+                </div>
+                <div class="d-grid gap-2" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+                    @foreach($nudges as $nudge)
+                        <div class="p-3 rounded" style="background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.18);">
+                            <div class="fw-semibold">{{ $nudge['title'] }}</div>
+                            <div class="text-subtle">{{ $nudge['body'] }}</div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if(!empty($progressMetrics))
+        <div class="workspace-section">
+            <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                <div class="workspace-card h-100">
+                    <span class="workspace-eyebrow">Streak</span>
+                    <div class="d-flex align-items-baseline gap-2">
+                        <h2 class="mb-0">
+                            <span class="mdi mdi-fire text-warning"></span>
+                            {{ $progressMetrics['current_streak'] ?? 0 }} days
+                        </h2>
+                        <small class="text-subtle">Longest: {{ $progressMetrics['longest_streak'] ?? 0 }}</small>
+                    </div>
+                    <p class="text-subtle mb-0 mt-1">Keep the flame alive with daily momentum.</p>
+                </div>
+
+                <div class="workspace-card h-100">
+                    <span class="workspace-eyebrow">Weekly target</span>
+                    @php
+                        $weeklyProgress = $progressMetrics['weekly_progress'] ?? 0;
+                        $weeklyPercent = (int) round($weeklyProgress * 100);
+                    @endphp
+                    <div class="fw-semibold mb-1">
+                        {{ $progressMetrics['weekly_completed'] ?? 0 }} / {{ $progressMetrics['weekly_goal'] ?? 0 }} chats this week
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ $weeklyPercent }}%;" aria-valuenow="{{ $weeklyPercent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    @if(($progressMetrics['weekly_remaining'] ?? 0) > 0)
+                        <p class="text-subtle mb-0 mt-2">
+                            {{ $progressMetrics['weekly_remaining'] }} to go to hit your goal.
+                        </p>
+                    @else
+                        <p class="text-subtle mb-0 mt-2">Goal met—nice work.</p>
+                    @endif
+                </div>
+
+                <div class="workspace-card h-100">
+                    <span class="workspace-eyebrow">XP</span>
+                    @php
+                        $levelProgress = $progressMetrics['level_progress'] ?? 0;
+                        $levelPercent = (int) round($levelProgress * 100);
+                    @endphp
+                    <div class="fw-semibold mb-1">
+                        Level {{ $progressMetrics['level'] ?? 1 }} · {{ $progressMetrics['xp_total'] ?? 0 }} XP
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $levelPercent }}%;" aria-valuenow="{{ $levelPercent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <p class="text-subtle mb-0 mt-2">XP builds as you complete chats with notes and structure.</p>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if(!empty($achievements))
+        <div class="workspace-section">
+            <div class="workspace-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="workspace-eyebrow">Achievements</span>
+                    <small class="text-subtle">Unlocked badges</small>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    @forelse($achievements as $achievement)
+                        <span class="workspace-chip">
+                            <span class="mdi mdi-trophy-outline text-warning"></span>
+                            <span class="fw-semibold">{{ $achievement->title }}</span>
+                            <small class="text-muted d-block" style="font-size: 0.8rem;">{{ $achievement->description }}</small>
+                        </span>
+                    @empty
+                        <span class="text-subtle">No achievements yet—complete chats to unlock.</span>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if(!empty($progressMetrics) || !empty($newAchievements))
+        <div id="milestone-toast" style="position: fixed; top: 16px; right: 16px; z-index: 1040; display: none; max-width: 320px;">
+            <div class="alert alert-success d-flex align-items-start gap-2 mb-0" style="box-shadow: 0 10px 30px rgba(0,0,0,0.12);">
+                <span class="mdi mdi-party-popper fs-4"></span>
+                <div>
+                    <div class="fw-bold" id="milestone-title">Milestone unlocked</div>
+                    <div id="milestone-body" class="small mb-1"></div>
+                    <button class="btn btn-sm btn-outline-success" id="milestone-close">Nice!</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @if($nextReminderChat)
         @php
             $reminderAt = $nextReminderChat->scheduled_at?->copy();
@@ -355,6 +463,88 @@
                 if (Notification.permission === 'granted') {
                     showFeedback('Notifications are already allowed. Click to schedule the reminder.', false);
                 }
+            })();
+        </script>
+    @endif
+
+    @if(!empty($progressMetrics))
+        <script>
+            (() => {
+                const toast = document.getElementById('milestone-toast');
+                if (!toast) return;
+
+                const titleEl = document.getElementById('milestone-title');
+                const bodyEl = document.getElementById('milestone-body');
+                const closeBtn = document.getElementById('milestone-close');
+
+                const metrics = @json($progressMetrics);
+                const achieved = [];
+
+                const newAchievements = @json($newAchievements ?? []);
+                if (Array.isArray(newAchievements)) {
+                    newAchievements.forEach(item => {
+                        achieved.push({
+                            key: `achv_${item.slug}`,
+                            title: item.title || 'Achievement unlocked',
+                            body: item.description || ''
+                        });
+                    });
+                }
+
+                if ((metrics.weekly_remaining ?? 1) === 0 && (metrics.weekly_goal ?? 0) > 0) {
+                    achieved.push({ key: 'weekly_goal', title: 'Weekly goal smashed', body: 'You hit your chat target for the week. Keep the momentum!' });
+                }
+
+                if ((metrics.current_streak ?? 0) >= 7) {
+                    achieved.push({ key: 'streak_7', title: '7-day streak', body: 'A full week of coffee chats. That is consistency.' });
+                }
+
+                if ((metrics.longest_streak ?? 0) >= 30) {
+                    achieved.push({ key: 'streak_30', title: '30-day streak', body: 'Thirty days of steady outreach. Legendary.' });
+                }
+
+                if ((metrics.total_completed ?? 0) >= 25) {
+                    achieved.push({ key: 'chats_25', title: '25 chats completed', body: 'You have logged 25 coffee chats. Network compounding in action.' });
+                } else if ((metrics.total_completed ?? 0) >= 10) {
+                    achieved.push({ key: 'chats_10', title: '10 chats completed', body: 'Double digits reached. Keep going.' });
+                }
+
+                const level = metrics.level ?? 1;
+                const levelProgress = metrics.level_progress ?? 0;
+                if (levelProgress === 0 && (metrics.xp_total ?? 0) > 0) {
+                    achieved.push({ key: `level_${level}`, title: `Level ${level} unlocked`, body: 'New level reached. Onward.' });
+                }
+
+                if (!achieved.length) return;
+
+                const storageKey = 'coffeechat_milestones_shown';
+                let seen = [];
+                try {
+                    seen = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                } catch (e) {
+                    seen = [];
+                }
+
+                const next = achieved.find(item => !seen.includes(item.key));
+                if (!next) return;
+
+                const show = () => {
+                    titleEl.textContent = next.title;
+                    bodyEl.textContent = next.body;
+                    toast.style.display = 'block';
+                    toast.style.opacity = 1;
+                };
+
+                const hide = () => {
+                    toast.style.display = 'none';
+                    if (!seen.includes(next.key)) {
+                        seen.push(next.key);
+                        localStorage.setItem(storageKey, JSON.stringify(seen));
+                    }
+                };
+
+                closeBtn?.addEventListener('click', hide);
+                setTimeout(show, 500);
             })();
         </script>
     @endif
