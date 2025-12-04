@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\CoffeeChat;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class CoffeeChatProgressService
 {
@@ -94,6 +95,23 @@ class CoffeeChatProgressService
      */
     public function metrics(User $user): array
     {
+        if (! Schema::hasColumn('coffee_chats', 'completed_at')) {
+            return [
+                'current_streak' => 0,
+                'longest_streak' => 0,
+                'last_7_days' => 0,
+                'last_30_days' => 0,
+                'weekly_completed' => 0,
+                'weekly_goal' => (int) ($user->weekly_chat_goal ?? 3),
+                'weekly_remaining' => (int) ($user->weekly_chat_goal ?? 3),
+                'weekly_progress' => 0,
+                'xp_total' => (int) ($user->xp_total ?? 0),
+                'level' => 1,
+                'level_progress' => 0,
+                'total_completed' => 0,
+            ];
+        }
+
         $now = Carbon::now(config('app.timezone'));
         $weekStart = $now->copy()->startOfWeek();
         $weekEnd = $now->copy()->endOfWeek();
