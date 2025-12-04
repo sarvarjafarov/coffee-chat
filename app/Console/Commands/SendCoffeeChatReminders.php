@@ -32,7 +32,7 @@ class SendCoffeeChatReminders extends Command
         $start = $tomorrow->copy()->startOfDay();
         $end = $tomorrow->copy()->endOfDay();
 
-        $this->components->info('Preparing reminder emails for coffee chats scheduled between '.$start.' and '.$end.'.');
+        $this->info('Preparing reminder emails for coffee chats scheduled between '.$start.' and '.$end.'.');
 
         $count = 0;
 
@@ -54,7 +54,7 @@ class SendCoffeeChatReminders extends Command
                 }
             });
 
-        $this->components->info("Sent {$count} reminder email(s).");
+        $this->info("Sent {$count} reminder email(s).");
 
         return Command::SUCCESS;
     }
