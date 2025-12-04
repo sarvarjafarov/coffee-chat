@@ -141,6 +141,13 @@ class CoffeeChatController extends Controller
     {
         $data = $this->validatedData($request, $coffeeChat);
 
+        $scheduleChanged = optional($coffeeChat->scheduled_at)->toDateTimeString() !== optional($data['scheduled_at'])->toDateTimeString();
+        $statusBackToPlanned = $coffeeChat->status !== $data['status'] && $data['status'] === 'planned';
+
+        if ($scheduleChanged || $statusBackToPlanned) {
+            $data['reminder_sent_at'] = null;
+        }
+
         $coffeeChat->update($data);
 
         $coffeeChat->channels()->sync($request->input('channels', []));

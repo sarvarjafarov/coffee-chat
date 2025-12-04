@@ -30,6 +30,7 @@ class CoffeeChat extends Model
         'notes',
         'rating',
         'extras',
+        'reminder_sent_at',
     ];
 
     protected $casts = [
@@ -38,6 +39,7 @@ class CoffeeChat extends Model
         'duration_minutes' => 'integer',
         'rating' => 'integer',
         'extras' => 'array',
+        'reminder_sent_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

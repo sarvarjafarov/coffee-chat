@@ -129,11 +129,15 @@ class CoffeeChatController extends Controller
         $company = $this->resolveCompany($data);
         $contact = $this->resolveContact($data, $company);
 
-        $coffeeChat->update([
+        $incomingSchedule = $data['scheduled_at'] ? Carbon::parse($data['scheduled_at']) : null;
+        $scheduleChanged = optional($coffeeChat->scheduled_at)->toDateTimeString() !== optional($incomingSchedule)->toDateTimeString();
+        $statusBackToPlanned = $coffeeChat->status !== $data['status'] && $data['status'] === 'planned';
+
+        $updatePayload = [
             'company_id' => $company?->id,
             'contact_id' => $contact?->id,
             'position_title' => $data['position_title'] ?? null,
-            'scheduled_at' => $data['scheduled_at'] ?? null,
+            'scheduled_at' => $incomingSchedule,
             'time_zone' => $data['time_zone'] ?? null,
             'location' => $data['location'] ?? null,
             'status' => $data['status'],
@@ -145,7 +149,13 @@ class CoffeeChatController extends Controller
             'notes' => $data['notes'] ?? null,
             'rating' => $data['rating'] ?? null,
             'extras' => $data['extras'] ?? null,
-        ]);
+        ];
+
+        if ($scheduleChanged || $statusBackToPlanned) {
+            $updatePayload['reminder_sent_at'] = null;
+        }
+
+        $coffeeChat->update($updatePayload);
 
         $coffeeChat->channels()->sync($data['channels'] ?? []);
 
