@@ -116,14 +116,15 @@ class CoffeeChatProgressService
         $weekStart = $now->copy()->startOfWeek();
         $weekEnd = $now->copy()->endOfWeek();
 
-        $completed = CoffeeChat::query()
+        $completedDates = CoffeeChat::query()
             ->where('user_id', $user->id)
             ->where('status', 'completed')
             ->whereNotNull('completed_at')
-            ->get(['completed_at']);
+            ->get(['completed_at'])
+            ->pluck('completed_at')
+            ->filter();
 
-        $uniqueDays = $completed->pluck('completed_at')
-            ->filter()
+        $uniqueDays = $completedDates
             ->map(fn ($dt) => $dt->copy()->setTimezone($now->timezone)->startOfDay())
             ->unique(function (Carbon $dt) {
                 return $dt->format('Y-m-d');
@@ -133,11 +134,11 @@ class CoffeeChatProgressService
 
         [$currentStreak, $longestStreak] = $this->calculateStreaks($uniqueDays, $now->copy()->startOfDay());
 
-        $last7 = $completed->filter(fn ($dt) => $dt->copy()->setTimezone($now->timezone)->greaterThanOrEqualTo($now->copy()->subDays(6)->startOfDay()))->count();
-        $last30 = $completed->filter(fn ($dt) => $dt->copy()->setTimezone($now->timezone)->greaterThanOrEqualTo($now->copy()->subDays(29)->startOfDay()))->count();
-        $totalCompleted = $completed->count();
+        $last7 = $completedDates->filter(fn ($dt) => $dt->copy()->setTimezone($now->timezone)->greaterThanOrEqualTo($now->copy()->subDays(6)->startOfDay()))->count();
+        $last30 = $completedDates->filter(fn ($dt) => $dt->copy()->setTimezone($now->timezone)->greaterThanOrEqualTo($now->copy()->subDays(29)->startOfDay()))->count();
+        $totalCompleted = $completedDates->count();
 
-        $weeklyCompleted = $completed->filter(function ($dt) use ($weekStart, $weekEnd) {
+        $weeklyCompleted = $completedDates->filter(function ($dt) use ($weekStart, $weekEnd) {
             $date = $dt->copy()->setTimezone($weekStart->timezone);
             return $date->betweenIncluded($weekStart, $weekEnd);
         })->count();
