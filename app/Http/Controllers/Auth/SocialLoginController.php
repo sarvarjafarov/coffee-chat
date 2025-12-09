@@ -23,6 +23,7 @@ class SocialLoginController extends Controller
     public function redirect(string $provider): RedirectResponse
     {
         $provider = $this->validatedProvider($provider);
+        $driverName = $this->driverName($provider);
 
         $config = $this->resolveProviderConfig($provider);
 
@@ -32,7 +33,7 @@ class SocialLoginController extends Controller
                 ->with('status', $this->displayName($provider).' sign-in is not configured yet. Please contact the workspace admin.');
         }
 
-        $driver = Socialite::driver($provider);
+        $driver = Socialite::driver($driverName);
 
         // LinkedIn app is configured for OpenID Connect; request only OIDC scopes explicitly.
         $driver->setScopes(['openid', 'profile', 'email'])
@@ -63,7 +64,7 @@ class SocialLoginController extends Controller
         }
 
         try {
-            $driver = Socialite::driver($provider);
+            $driver = Socialite::driver($this->driverName($provider));
 
             $redirectUrl = data_get($config, 'redirect');
             if (! $redirectUrl) {
@@ -162,7 +163,9 @@ class SocialLoginController extends Controller
      */
     protected function resolveProviderConfig(string $provider): ?array
     {
-        $config = config("services.{$provider}", []);
+        $serviceKey = $this->serviceKey($provider);
+
+        $config = config("services.{$serviceKey}", config("services.{$provider}", []));
 
         if (! blank(data_get($config, 'client_id')) && ! blank(data_get($config, 'client_secret'))) {
             return $config;
@@ -203,18 +206,44 @@ class SocialLoginController extends Controller
             'redirect' => $settings->get($keys['redirect'], data_get($config, 'redirect')),
         ];
 
-        config(["services.{$provider}.client_id" => $resolved['client_id']]);
-        config(["services.{$provider}.client_secret" => $resolved['client_secret']]);
-        if (! blank($resolved['redirect'])) {
-            config(["services.{$provider}.redirect" => $resolved['redirect']]);
+        foreach ($this->configTargets($provider) as $target) {
+            config(["services.{$target}.client_id" => $resolved['client_id']]);
+            config(["services.{$target}.client_secret" => $resolved['client_secret']]);
+            if (! blank($resolved['redirect'])) {
+                config(["services.{$target}.redirect" => $resolved['redirect']]);
+            }
         }
 
-        return config("services.{$provider}", []);
+        return config("services.{$serviceKey}", []);
     }
 
     protected function callbackUrl(string $provider): string
     {
         // Build callback from the named route to respect current scheme/host and avoid redirect mismatches.
         return route('oauth.callback', ['provider' => $provider], true);
+    }
+
+    protected function driverName(string $provider): string
+    {
+        return $provider === 'linkedin' ? 'linkedin-openid' : $provider;
+    }
+
+    protected function serviceKey(string $provider): string
+    {
+        return $provider === 'linkedin' ? 'linkedin-openid' : $provider;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function configTargets(string $provider): array
+    {
+        $serviceKey = $this->serviceKey($provider);
+
+        if ($serviceKey === $provider) {
+            return [$serviceKey];
+        }
+
+        return [$serviceKey, $provider];
     }
 }
