@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\WorkspaceMenuController as AdminWorkspaceMenuCont
 use App\Http\Controllers\Admin\SiteMenuController as AdminSiteMenuController;
 use App\Http\Controllers\Admin\MarketingAttributionController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
+use App\Http\Controllers\Admin\UserDashboardController as AdminUserDashboardController;
 use App\Http\Controllers\PricingController;
 use App\Http\Controllers\AnalyticsEventController;
 use App\Http\Controllers\SubscriptionController;
@@ -118,6 +119,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin']
     Route::get('attribution', [MarketingAttributionController::class, 'index'])->name('attribution.index');
     Route::get('feedback', [AdminFeedbackController::class, 'index'])->name('feedback.index');
     Route::put('feedback/{feedback}', [AdminFeedbackController::class, 'update'])->name('feedback.update');
+    Route::get('users/dashboard', [AdminUserDashboardController::class, 'index'])->name('users.dashboard');
     Route::resource('workspace-fields', AdminWorkspaceFieldController::class)->except(['show']);
     Route::get('network-health', [AdminNetworkHealthAssessmentController::class, 'index'])->name('network-health.index');
     Route::get('stripe', [SubscriptionController::class, 'settings'])->name('stripe.settings');
