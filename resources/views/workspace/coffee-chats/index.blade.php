@@ -97,6 +97,83 @@
         .coffee-chat-manage-link:hover {
             color: var(--accent);
         }
+        .coffee-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        .coffee-card {
+            background: linear-gradient(180deg, #ffffff 0%, rgba(247,250,255,0.96) 100%);
+            border: 1px solid rgba(148,163,184,0.16);
+            border-radius: 20px;
+            padding: 1rem;
+            box-shadow: 0 28px 60px -48px rgba(15,23,42,0.35);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .coffee-card__header, .coffee-card__footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .coffee-card__date {
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .coffee-card__time {
+            font-size: 0.85rem;
+        }
+        .coffee-card__body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .coffee-card__row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .coffee-card__contact {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .coffee-card__name {
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .coffee-card__manage {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 600;
+            color: var(--accent-strong);
+            text-decoration: none;
+        }
+        .coffee-card__manage:hover { color: var(--accent); }
+        .coffee-card__channels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .coffee-card__fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.5rem 0.75rem;
+        }
+        .coffee-card__field .label { font-size: 0.85rem; }
+        .coffee-card__field .value { font-weight: 600; color: #0f172a; }
+        .coffee-card__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        @media (max-width: 640px) {
+            .coffee-card-grid { grid-template-columns: 1fr; }
+        }
     </style>
 
     <div class="workspace-section">
@@ -278,117 +355,102 @@
         </div>
     @endif
 
-    <div class="workspace-table workspace-section coffee-table">
-        <table class="table align-middle mb-0">
-            <thead>
-                <tr>
-                    <th scope="col">Date</th>
-                    <th scope="col">Company</th>
-                    <th scope="col">Contact</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Channels</th>
-                    <th scope="col">Rating</th>
-                    @foreach($dynamicFields as $field)
-                        <th scope="col">{{ $field->label }}</th>
-                    @endforeach
-                    <th scope="col" class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($chats as $chat)
-                    <tr>
-                        <td>
+    <div class="workspace-section">
+        <div class="coffee-card-grid">
+            @forelse($chats as $chat)
+                <div class="coffee-card">
+                    <div class="coffee-card__header">
+                        <div>
                             @if($chat->scheduled_at)
-                                <div class="d-flex flex-column gap-1">
-                                    <span class="fw-semibold">{{ $chat->scheduled_at->format('M d, Y') }}</span>
-                                    <small class="text-subtle">{{ $chat->scheduled_at->format('H:i') }} {{ $chat->time_zone }}</small>
-                                </div>
+                                <div class="coffee-card__date">{{ $chat->scheduled_at->format('M d, Y') }}</div>
+                                <div class="coffee-card__time text-subtle">{{ $chat->scheduled_at->format('H:i') }} {{ $chat->time_zone }}</div>
                             @else
-                                <span class="text-subtle">—</span>
+                                <div class="coffee-card__date text-subtle">No date</div>
                             @endif
-                        </td>
-                        <td>
+                        </div>
+                        <span class="coffee-chip status-{{ $chat->status }}">
+                            {{ $statusOptions[$chat->status] ?? ucfirst($chat->status) }}
+                        </span>
+                    </div>
+
+                    <div class="coffee-card__body">
+                        <div class="coffee-card__row">
                             <span class="coffee-meta">
                                 <span class="mdi mdi-domain"></span>
                                 {{ $chat->company?->name ?? '—' }}
                             </span>
-                        </td>
-                        <td>
-                            @if($chat->contact)
-                                <div class="coffee-contact">
-                                    <span class="name">{{ $chat->contact->name }}</span>
-                                    @if($chat->position_title)
-                                        <span class="meta">{{ $chat->position_title }}</span>
-                                    @endif
-                                    <a href="{{ route('workspace.coffee-chats.edit', $chat) }}" class="coffee-chat-manage-link">
-                                        <span class="mdi mdi-pencil-outline"></span>
-                                        Manage
-                                    </a>
-                                </div>
-                            @else
-                                <span class="text-subtle">—</span>
-                            @endif
-                        </td>
-                        <td>
-                            <span class="coffee-chip status-{{ $chat->status }}">
-                                {{ $statusOptions[$chat->status] ?? $chat->status }}
-                            </span>
-                        </td>
-                        <td>
-                            @forelse($chat->channels as $channel)
-                                <span class="coffee-chip">{{ $channel->label }}</span>
-                            @empty
-                                <span class="text-subtle">—</span>
-                            @endforelse
-                        </td>
-                        <td>
                             @if($chat->rating)
                                 <span class="coffee-chip">
                                     <span class="mdi mdi-star-outline"></span>
                                     {{ $chat->rating }}/5
                                 </span>
-                            @else
-                                <span class="text-subtle">—</span>
                             @endif
-                        </td>
-                        @foreach($dynamicFields as $field)
-                            @php($value = data_get($chat->extras, $field->key))
-                            <td>
-                                @if(is_array($value))
-                                    {{ implode(', ', array_filter($value)) ?: '—' }}
-                                @elseif(is_bool($value))
-                                    {{ $value ? 'Yes' : 'No' }}
-                                @else
-                                    {{ $value ?? '—' }}
+                        </div>
+
+                        <div class="coffee-card__contact">
+                            <div>
+                                <div class="coffee-card__name">{{ $chat->contact->name ?? 'Unnamed contact' }}</div>
+                                @if($chat->position_title)
+                                    <div class="text-subtle">{{ $chat->position_title }}</div>
                                 @endif
-                            </td>
-                        @endforeach
-                        <td class="text-end">
-                            <div class="d-inline-flex gap-2">
-                                <a href="{{ route('workspace.coffee-chats.edit', $chat) }}" class="btn btn-sm btn-outline-primary">
-                                    <span class="mdi mdi-pencil-outline"></span>
-                                    Edit
-                                </a>
-                                <form class="d-inline" method="POST" action="{{ route('workspace.coffee-chats.destroy', $chat) }}" onsubmit="return confirm('Delete this coffee chat?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <span class="mdi mdi-trash-can-outline"></span>
-                                        Delete
-                                    </button>
-                                </form>
                             </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="{{ 7 + $dynamicFields->count() }}" class="text-center text-subtle py-5">
-                            You have no coffee chats yet. Click <strong>“Log coffee chat”</strong> to add your first.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                            <a href="{{ route('workspace.coffee-chats.edit', $chat) }}" class="coffee-card__manage">
+                                <span class="mdi mdi-pencil-outline"></span> Manage
+                            </a>
+                        </div>
+
+                        <div class="coffee-card__channels">
+                            @forelse($chat->channels as $channel)
+                                <span class="coffee-chip">{{ $channel->label }}</span>
+                            @empty
+                                <span class="text-subtle">No channels</span>
+                            @endforelse
+                        </div>
+
+                        @if($dynamicFields->isNotEmpty())
+                            <div class="coffee-card__fields">
+                                @foreach($dynamicFields as $field)
+                                    @php($value = data_get($chat->extras, $field->key))
+                                    <div class="coffee-card__field">
+                                        <div class="label text-subtle">{{ $field->label }}</div>
+                                        <div class="value">
+                                            @if(is_array($value))
+                                                {{ implode(', ', array_filter($value)) ?: '—' }}
+                                            @elseif(is_bool($value))
+                                                {{ $value ? 'Yes' : 'No' }}
+                                            @else
+                                                {{ $value ?? '—' }}
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="coffee-card__footer">
+                        <div class="coffee-card__actions">
+                            <a href="{{ route('workspace.coffee-chats.edit', $chat) }}" class="btn btn-sm btn-outline-primary">
+                                <span class="mdi mdi-pencil-outline"></span>
+                                Edit
+                            </a>
+                            <form class="d-inline" method="POST" action="{{ route('workspace.coffee-chats.destroy', $chat) }}" onsubmit="return confirm('Delete this coffee chat?');">
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn btn-sm btn-outline-danger">
+                                    <span class="mdi mdi-trash-can-outline"></span>
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center text-subtle py-5">
+                    You have no coffee chats yet. Click <strong>“Log coffee chat”</strong> to add your first.
+                </div>
+            @endforelse
+        </div>
     </div>
 
     <div>
