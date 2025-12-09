@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Console\Commands\SendCoffeeChatReminders;
 use App\Console\Commands\BackfillCoffeeChatProgress;
+use App\Console\Commands\ComputeMarketingAttribution;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         SendCoffeeChatReminders::class,
         BackfillCoffeeChatProgress::class,
+        ComputeMarketingAttribution::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');  // Trust all proxies (Heroku)

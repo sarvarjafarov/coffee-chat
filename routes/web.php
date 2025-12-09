@@ -12,7 +12,9 @@ use App\Http\Controllers\Admin\WorkspaceFieldController as AdminWorkspaceFieldCo
 use App\Http\Controllers\Admin\NetworkHealthAssessmentController as AdminNetworkHealthAssessmentController;
 use App\Http\Controllers\Admin\WorkspaceMenuController as AdminWorkspaceMenuController;
 use App\Http\Controllers\Admin\SiteMenuController as AdminSiteMenuController;
+use App\Http\Controllers\Admin\MarketingAttributionController;
 use App\Http\Controllers\PricingController;
+use App\Http\Controllers\AnalyticsEventController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MarketingPageController;
@@ -25,6 +27,7 @@ use App\Http\Controllers\Workspace\MockInterviewController;
 use App\Http\Controllers\Workspace\ProfileController as WorkspaceProfileController;
 use App\Http\Controllers\Workspace\TeamFinderController as WorkspaceTeamFinderController;
 use App\Http\Controllers\NetworkHealthController;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [MarketingPageController::class, 'home'])->name('home');
@@ -35,6 +38,11 @@ Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show')
 Route::get('/network-health', [NetworkHealthController::class, 'show'])->name('network-health');
 Route::post('/network-health', [NetworkHealthController::class, 'analyze'])->name('network-health.analyze');
 Route::get('/pricing', PricingController::class)->name('pricing');
+
+Route::post('/analytics/events', [AnalyticsEventController::class, 'store'])
+    ->name('analytics.events.store')
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->middleware('throttle:60,1');
 
 Route::middleware('auth')->group(function () {
     Route::post('/subscription/checkout', [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
@@ -101,6 +109,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin']
     Route::get('seo', [SeoManagerController::class, 'index'])->name('seo.index');
     Route::get('seo/{type}/{id}/edit', [SeoManagerController::class, 'edit'])->name('seo.edit');
     Route::put('seo/{type}/{id}', [SeoManagerController::class, 'update'])->name('seo.update');
+    Route::get('attribution', [MarketingAttributionController::class, 'index'])->name('attribution.index');
     Route::resource('workspace-fields', AdminWorkspaceFieldController::class)->except(['show']);
     Route::get('network-health', [AdminNetworkHealthAssessmentController::class, 'index'])->name('network-health.index');
     Route::get('stripe', [SubscriptionController::class, 'settings'])->name('stripe.settings');

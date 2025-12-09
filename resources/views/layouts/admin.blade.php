@@ -100,6 +100,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{{ route('admin.attribution.index') }}" class="nav-link {{ request()->routeIs('admin.attribution.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-project-diagram"></i>
+                            <p>Attribution</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{{ route('admin.menu.index') }}" class="nav-link {{ request()->routeIs('admin.menu.*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-link"></i>
                             <p>Menu items</p>
