@@ -63,10 +63,11 @@
         <meta name="twitter:description" content="{{ $ogDescription }}">
         @endif
         @if($ogImage)
-            <meta name="twitter:image" content="{{ $ogImage }}">
+        <meta name="twitter:image" content="{{ $ogImage }}">
         @endif
 
         @include('layouts.partials.analytics')
+        @include('components.feedback-widget', ['pageTitle' => $pageTitle ?? null, 'pagePath' => request()->path()])
 
         @foreach($metaTags as $tag)
             @php
@@ -160,6 +161,8 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
         @php

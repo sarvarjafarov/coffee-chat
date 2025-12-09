@@ -8,10 +8,13 @@
         <title>{{ config('app.name', 'CoffeeChat OS') }}</title>
 
         @include('layouts.partials.analytics')
+        @include('components.feedback-widget', ['pageTitle' => config('app.name', 'CoffeeChat OS'), 'pagePath' => request()->path()])
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}">
 
         <!-- Scripts -->
         @php($viteManifest = public_path('build/manifest.json'))

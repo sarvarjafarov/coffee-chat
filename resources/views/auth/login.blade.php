@@ -1,5 +1,24 @@
 <x-guest-layout>
+    <style>
+        .auth-logo-mark {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
+            color: #fff;
+            box-shadow: 0 24px 40px -24px rgba(37,99,235,0.45);
+            margin-bottom: 1rem;
+        }
+        .auth-logo-mark .mdi {
+            font-size: 1.8rem;
+        }
+    </style>
     <div class="auth-form-pane-inner">
+        <div class="auth-logo-mark">
+            <span class="mdi mdi-coffee-outline"></span>
+        </div>
         <h2>Welcome back</h2>
         <p class="auth-lead">Log in to orchestrate your next coffee chat, sync follow-ups, and keep momentum. Don’t have an account? <a class="auth-link" href="{{ route('register') }}">Start free</a>.</p>
 

@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\NetworkHealthAssessmentController as AdminNetwork
 use App\Http\Controllers\Admin\WorkspaceMenuController as AdminWorkspaceMenuController;
 use App\Http\Controllers\Admin\SiteMenuController as AdminSiteMenuController;
 use App\Http\Controllers\Admin\MarketingAttributionController;
+use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\PricingController;
 use App\Http\Controllers\AnalyticsEventController;
 use App\Http\Controllers\SubscriptionController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Workspace\MockInterviewController;
 use App\Http\Controllers\Workspace\ProfileController as WorkspaceProfileController;
 use App\Http\Controllers\Workspace\TeamFinderController as WorkspaceTeamFinderController;
 use App\Http\Controllers\NetworkHealthController;
+use App\Http\Controllers\FeedbackController;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 
@@ -43,6 +45,10 @@ Route::post('/analytics/events', [AnalyticsEventController::class, 'store'])
     ->name('analytics.events.store')
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->middleware('throttle:60,1');
+
+Route::post('/feedback', [FeedbackController::class, 'store'])
+    ->name('feedback.store')
+    ->middleware('throttle:20,1');
 
 Route::middleware('auth')->group(function () {
     Route::post('/subscription/checkout', [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
@@ -110,6 +116,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin']
     Route::get('seo/{type}/{id}/edit', [SeoManagerController::class, 'edit'])->name('seo.edit');
     Route::put('seo/{type}/{id}', [SeoManagerController::class, 'update'])->name('seo.update');
     Route::get('attribution', [MarketingAttributionController::class, 'index'])->name('attribution.index');
+    Route::get('feedback', [AdminFeedbackController::class, 'index'])->name('feedback.index');
+    Route::put('feedback/{feedback}', [AdminFeedbackController::class, 'update'])->name('feedback.update');
     Route::resource('workspace-fields', AdminWorkspaceFieldController::class)->except(['show']);
     Route::get('network-health', [AdminNetworkHealthAssessmentController::class, 'index'])->name('network-health.index');
     Route::get('stripe', [SubscriptionController::class, 'settings'])->name('stripe.settings');
