@@ -41,7 +41,7 @@ class AppServiceProvider extends ServiceProvider
             'google_client_id' => env('GOOGLE_CLIENT_ID'),
             'google_client_secret' => env('GOOGLE_CLIENT_SECRET'),
             'google_redirect_uri' => env('GOOGLE_REDIRECT_URI'),
-            'google_analytics_measurement_id' => env('GOOGLE_ANALYTICS_MEASUREMENT_ID'),
+            'google_analytics_measurement_id' => config('services.google_analytics.measurement_id'),
             'linkedin_client_id' => env('LINKEDIN_CLIENT_ID'),
             'linkedin_client_secret' => env('LINKEDIN_CLIENT_SECRET'),
             'linkedin_redirect_uri' => env('LINKEDIN_REDIRECT_URI'),
