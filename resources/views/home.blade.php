@@ -210,6 +210,13 @@
             letter-spacing: 0.18em;
             box-shadow: 0 16px 36px -28px rgba(37,99,235,0.3);
         }
+        .hero-badge-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
 
         .hero-title {
             font-size: clamp(2.45rem, 4.5vw + 1rem, 4rem);
@@ -1493,7 +1500,7 @@
         <div class="hero-top text-center">
             @if($heroBadge)
                 <span class="hero-badge">
-                    <span class="mdi mdi-sparkles"></span>
+                    <img src="{{ asset('coffeechat-os-favicon.png?v=3') }}" alt="CoffeeChat OS" class="hero-badge-icon">
                     {{ $heroBadge }}
                 </span>
             @endif

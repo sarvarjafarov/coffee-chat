@@ -5,7 +5,42 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'CoffeeChat OS') }}</title>
+        @php
+            $seo = $seo ?? [];
+            if (empty($seo)) {
+                $slug = trim(request()->path(), '/') ?: 'login';
+                $seoModel = \App\Models\SeoMeta::forSlug($slug);
+                $seo = $seoModel ? $seoModel->toArray() : [];
+            }
+            $pageTitle = $seo['title'] ?? config('app.name', 'CoffeeChat OS');
+            $pageDescription = $seo['description'] ?? null;
+            $canonical = $seo['canonical_url'] ?? url()->current();
+            $ogTitle = $seo['og_title'] ?? $pageTitle;
+            $ogDescription = $seo['og_description'] ?? $pageDescription;
+            $ogImage = $seo['og_image'] ?? null;
+            $twitterCard = $seo['twitter_card'] ?? 'summary';
+        @endphp
+
+        <title>{{ $pageTitle }}</title>
+        @if($pageDescription)
+            <meta name="description" content="{{ $pageDescription }}">
+        @endif
+        <link rel="canonical" href="{{ $canonical }}">
+        <meta property="og:title" content="{{ $ogTitle }}">
+        @if($ogDescription)
+            <meta property="og:description" content="{{ $ogDescription }}">
+        @endif
+        <meta property="og:url" content="{{ $canonical }}">
+        <meta property="og:type" content="website">
+        <meta name="twitter:card" content="{{ $twitterCard }}">
+        <meta name="twitter:title" content="{{ $ogTitle }}">
+        @if($ogDescription)
+            <meta name="twitter:description" content="{{ $ogDescription }}">
+        @endif
+        @if($ogImage)
+            <meta property="og:image" content="{{ $ogImage }}">
+            <meta name="twitter:image" content="{{ $ogImage }}">
+        @endif
 
         @include('layouts.partials.analytics')
         @include('components.feedback-widget', ['pageTitle' => config('app.name', 'CoffeeChat OS'), 'pagePath' => request()->path()])
@@ -13,9 +48,10 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="icon" type="image/svg+xml" sizes="any" href="{{ asset('favicon.svg?v=2') }}">
-        <link rel="shortcut icon" href="{{ asset('favicon.svg?v=2') }}">
-        <link rel="apple-touch-icon" href="{{ asset('favicon.svg?v=2') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('coffeechat-os-favicon.png?v=3') }}">
+        <link rel="icon" type="image/svg+xml" sizes="any" href="{{ asset('favicon.svg?v=3') }}">
+        <link rel="shortcut icon" href="{{ asset('coffeechat-os-favicon.png?v=3') }}">
+        <link rel="apple-touch-icon" href="{{ asset('coffeechat-os-favicon.png?v=3') }}">
 
         @php($viteManifest = public_path('build/manifest.json'))
         @if (file_exists($viteManifest))
