@@ -39,10 +39,7 @@ class SocialLoginController extends Controller
         $driver->setScopes(['openid', 'profile', 'email'])
             ->with(['scope' => 'openid profile email']);
 
-        $redirectUrl = data_get($config, 'redirect');
-        if (! $redirectUrl) {
-            return redirect()->route('login')->with('status', 'LinkedIn sign-in is not configured yet. Please contact the workspace admin.');
-        }
+        $redirectUrl = data_get($config, 'redirect') ?: $this->callbackUrl($provider);
 
         $driver->redirectUrl($redirectUrl);
 
@@ -66,10 +63,7 @@ class SocialLoginController extends Controller
         try {
             $driver = Socialite::driver($this->driverName($provider));
 
-            $redirectUrl = data_get($config, 'redirect');
-            if (! $redirectUrl) {
-                return redirect()->route('login')->with('status', 'LinkedIn sign-in is not configured yet. Please contact the workspace admin.');
-            }
+            $redirectUrl = data_get($config, 'redirect') ?: $this->callbackUrl($provider);
             $driver->redirectUrl($redirectUrl);
 
             $socialUser = $driver->stateless()->user();
@@ -167,6 +161,16 @@ class SocialLoginController extends Controller
 
         $config = config("services.{$serviceKey}", config("services.{$provider}", []));
 
+        // Ensure redirect is always set to a valid callback URL when client credentials exist.
+        if (
+            ! blank(data_get($config, 'client_id'))
+            && ! blank(data_get($config, 'client_secret'))
+            && blank(data_get($config, 'redirect'))
+        ) {
+            $config['redirect'] = $this->callbackUrl($provider);
+            config(["services.{$serviceKey}.redirect" => $config['redirect']]);
+        }
+
         if (! blank(data_get($config, 'client_id')) && ! blank(data_get($config, 'client_secret'))) {
             return $config;
         }
@@ -205,6 +209,10 @@ class SocialLoginController extends Controller
             'client_secret' => $settings->get($keys['client_secret']),
             'redirect' => $settings->get($keys['redirect'], data_get($config, 'redirect')),
         ];
+
+        if (blank($resolved['redirect'])) {
+            $resolved['redirect'] = $this->callbackUrl($provider);
+        }
 
         foreach ($this->configTargets($provider) as $target) {
             config(["services.{$target}.client_id" => $resolved['client_id']]);
