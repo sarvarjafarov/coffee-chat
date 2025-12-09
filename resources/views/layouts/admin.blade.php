@@ -110,6 +110,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{{ route('admin.feedback.index') }}" class="nav-link {{ request()->routeIs('admin.feedback.*') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-comment-dots"></i>
+                            <p>Feedback inbox</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{{ route('admin.menu.index') }}" class="nav-link {{ request()->routeIs('admin.menu.*') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-link"></i>
                             <p>Menu items</p>
