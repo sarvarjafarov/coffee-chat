@@ -3,7 +3,13 @@
         <h2>Choose a new password</h2>
         <p class="auth-lead">Set a fresh password to get back into CoffeeChat OS.</p>
 
-        <form method="POST" action="{{ route('password.store') }}" class="auth-form">
+        <form
+            method="POST"
+            action="{{ route('password.store') }}"
+            class="auth-form"
+            data-analytics-event="auth_submit"
+            data-context="reset_password"
+        >
             @csrf
             <input type="hidden" name="token" value="{{ $request->route('token') }}">
 

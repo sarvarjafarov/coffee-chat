@@ -7,7 +7,13 @@
             <div class="auth-status">{{ session('status') }}</div>
         @endif
 
-        <form method="POST" action="{{ route('password.email') }}" class="auth-form">
+        <form
+            method="POST"
+            action="{{ route('password.email') }}"
+            class="auth-form"
+            data-analytics-event="auth_submit"
+            data-context="forgot_password"
+        >
             @csrf
 
             <div class="auth-form-group">

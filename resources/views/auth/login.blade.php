@@ -17,7 +17,13 @@
             'dividerText' => 'Or continue with your password',
         ])
 
-        <form method="POST" action="{{ route('login') }}" class="auth-form">
+        <form
+            method="POST"
+            action="{{ route('login') }}"
+            class="auth-form"
+            data-analytics-event="auth_submit"
+            data-context="login"
+        >
             @csrf
 
             <div class="auth-form-group">

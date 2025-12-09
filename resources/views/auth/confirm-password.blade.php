@@ -3,7 +3,13 @@
         <h2>Confirm password</h2>
         <p class="auth-lead">This is a secure area. Please confirm your password before continuing.</p>
 
-        <form method="POST" action="{{ route('password.confirm') }}" class="auth-form">
+        <form
+            method="POST"
+            action="{{ route('password.confirm') }}"
+            class="auth-form"
+            data-analytics-event="auth_submit"
+            data-context="confirm_password"
+        >
             @csrf
             <div class="auth-form-group">
                 <label for="password">Password</label>

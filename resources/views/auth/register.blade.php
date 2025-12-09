@@ -9,7 +9,13 @@
             'dividerText' => 'Or create your account with email',
         ])
 
-        <form method="POST" action="{{ route('register') }}" class="auth-form">
+        <form
+            method="POST"
+            action="{{ route('register') }}"
+            class="auth-form"
+            data-analytics-event="auth_submit"
+            data-context="register"
+        >
             @csrf
 
             <div class="auth-form-group">
