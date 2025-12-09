@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css">
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.svg') }}">
     <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}">
     @include('components.feedback-widget', ['pageTitle' => config('app.name', 'CoffeeChat OS').' Admin', 'pagePath' => request()->path()])
 </head>
