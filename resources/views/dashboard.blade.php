@@ -12,6 +12,7 @@
     $googleClientSecret = old('google_client_secret', $themeSettings->get('google_client_secret', ''));
     $defaultGoogleRedirect = rtrim(config('app.url'), '/').'/auth/google/callback';
     $googleRedirectUri = old('google_redirect_uri', $themeSettings->get('google_redirect_uri', config('services.google.redirect', $defaultGoogleRedirect)));
+    $googleAnalyticsMeasurementId = old('google_analytics_measurement_id', $themeSettings->get('google_analytics_measurement_id', config('services.google_analytics.measurement_id')));
     $linkedinClientId = old('linkedin_client_id', $themeSettings->get('linkedin_client_id', ''));
     $linkedinClientSecret = old('linkedin_client_secret', $themeSettings->get('linkedin_client_secret', ''));
     $defaultLinkedinRedirect = rtrim(config('app.url'), '/').'/auth/linkedin/callback';
@@ -146,6 +147,22 @@
                                     autocomplete="off"
                                 />
                                 @error('google_cse_id')
+                                    <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-slate-600" for="google_analytics_measurement_id">Google Analytics measurement ID</label>
+                                <input
+                                    type="text"
+                                    id="google_analytics_measurement_id"
+                                    name="google_analytics_measurement_id"
+                                    value="{{ $googleAnalyticsMeasurementId }}"
+                                    class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm focus:border-blue-400 focus:ring focus:ring-blue-100"
+                                    autocomplete="off"
+                                    placeholder="G-XXXXXXXXXX"
+                                />
+                                <p class="text-xs text-slate-400 mt-1">Use the Measurement ID from Google Analytics (e.g., G-XXXXXX).</p>
+                                @error('google_analytics_measurement_id')
                                     <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                                 @enderror
                             </div>

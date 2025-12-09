@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
 
         $baseGoogleConfig = config('services.google', []);
         $baseLinkedinConfig = config('services.linkedin', []);
+        $baseAnalyticsConfig = config('services.google_analytics', []);
 
         $settings = collect();
 
@@ -40,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
             'google_client_id' => env('GOOGLE_CLIENT_ID'),
             'google_client_secret' => env('GOOGLE_CLIENT_SECRET'),
             'google_redirect_uri' => env('GOOGLE_REDIRECT_URI'),
+            'google_analytics_measurement_id' => env('GOOGLE_ANALYTICS_MEASUREMENT_ID'),
             'linkedin_client_id' => env('LINKEDIN_CLIENT_ID'),
             'linkedin_client_secret' => env('LINKEDIN_CLIENT_SECRET'),
             'linkedin_redirect_uri' => env('LINKEDIN_REDIRECT_URI'),
@@ -55,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
             'services.google.client_id' => $settings->get('google_client_id', $baseGoogleConfig['client_id'] ?? env('GOOGLE_CLIENT_ID')),
             'services.google.client_secret' => $settings->get('google_client_secret', $baseGoogleConfig['client_secret'] ?? env('GOOGLE_CLIENT_SECRET')),
             'services.google.redirect' => $settings->get('google_redirect_uri', $baseGoogleConfig['redirect'] ?? env('GOOGLE_REDIRECT_URI')),
+            'services.google_analytics.measurement_id' => $settings->get('google_analytics_measurement_id', $baseAnalyticsConfig['measurement_id'] ?? env('GOOGLE_ANALYTICS_MEASUREMENT_ID')),
             'services.linkedin.client_id' => $settings->get('linkedin_client_id', $baseLinkedinConfig['client_id'] ?? env('LINKEDIN_CLIENT_ID')),
             'services.linkedin.client_secret' => $settings->get('linkedin_client_secret', $baseLinkedinConfig['client_secret'] ?? env('LINKEDIN_CLIENT_SECRET')),
             'services.linkedin.redirect' => $settings->get('linkedin_redirect_uri', $baseLinkedinConfig['redirect'] ?? env('LINKEDIN_REDIRECT_URI')),
