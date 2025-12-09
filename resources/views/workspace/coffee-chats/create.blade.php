@@ -20,7 +20,13 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('workspace.coffee-chats.store') }}">
+        <form
+            method="POST"
+            action="{{ route('workspace.coffee-chats.store') }}"
+            data-analytics-event="coffee_chat_submit"
+            data-context="create"
+            data-analytics-fields="status,scheduled_at,position_title"
+        >
             @csrf
             @include('workspace.coffee-chats._form')
             <div class="workspace-divider"></div>

@@ -7,7 +7,12 @@
             <h1>My coffee chats</h1>
             <p class="text-subtle">Log conversations, track follow-ups, and monitor momentum.</p>
         </div>
-        <a href="{{ route('workspace.coffee-chats.create') }}" class="btn btn-primary">
+        <a
+            href="{{ route('workspace.coffee-chats.create') }}"
+            class="btn btn-primary"
+            data-analytics-event="coffee_chat_new_click"
+            data-location="list_header"
+        >
             <span class="mdi mdi-plus-circle-outline me-2"></span>
             Log coffee chat
         </a>

@@ -227,6 +227,8 @@
             data-team-finder-form
             data-search-endpoint="{{ route('workspace.team-finder.search') }}"
             data-follow-action="{{ route('workspace.team-finder.follow') }}"
+            data-analytics-event="team_finder_search"
+            data-analytics-fields="position,company,city,team_name"
         >
             <div class="row g-3">
                 <div class="col-md-6 col-xl-3">
@@ -326,12 +328,31 @@
                                     @endif
                                     <div class="d-flex flex-wrap gap-2">
                                         @if(!empty($item['url']))
-                                            <a href="{{ $item['url'] }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
+                                            <a
+                                                href="{{ $item['url'] }}"
+                                                target="_blank"
+                                                rel="noopener"
+                                                class="btn btn-sm btn-outline-primary"
+                                                data-analytics-event="team_finder_view_profile"
+                                                data-source="{{ $item['source'] ?? 'unknown' }}"
+                                                data-company="{{ $item['company'] ?? $filters['company'] ?? 'unknown' }}"
+                                                data-role="{{ $item['role'] ?? '' }}"
+                                            >
                                                 <span class="mdi mdi-open-in-new"></span>
                                                 View profile
                                             </a>
                                         @endif
-                                        <form action="{{ route('workspace.team-finder.follow') }}" method="POST" class="d-inline" data-follow-coffee-chat>
+                                        <form
+                                            action="{{ route('workspace.team-finder.follow') }}"
+                                            method="POST"
+                                            class="d-inline"
+                                            data-follow-coffee-chat
+                                            data-analytics-event="team_finder_follow"
+                                            data-source="{{ $item['source'] ?? 'unknown' }}"
+                                            data-company="{{ $item['company'] ?? $filters['company'] ?? 'unknown' }}"
+                                            data-role="{{ $item['role'] ?? '' }}"
+                                            data-location="{{ $item['location'] ?? '' }}"
+                                        >
                                             @csrf
                                             <input type="hidden" name="contact" value='@json($item)'>
                                             <button type="submit" class="btn btn-sm btn-primary">

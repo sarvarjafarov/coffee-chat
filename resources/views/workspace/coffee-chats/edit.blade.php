@@ -25,7 +25,14 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('workspace.coffee-chats.update', $chat) }}">
+        <form
+            method="POST"
+            action="{{ route('workspace.coffee-chats.update', $chat) }}"
+            data-analytics-event="coffee_chat_submit"
+            data-context="update"
+            data-chat-id="{{ $chat->id }}"
+            data-analytics-fields="status,scheduled_at,position_title"
+        >
             @csrf
             @method('PUT')
             @include('workspace.coffee-chats._form')
