@@ -13,9 +13,9 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-        <link rel="shortcut icon" href="{{ asset('favicon.svg') }}">
-        <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}">
+        <link rel="icon" type="image/svg+xml" sizes="any" href="{{ asset('favicon.svg?v=2') }}">
+        <link rel="shortcut icon" href="{{ asset('favicon.svg?v=2') }}">
+        <link rel="apple-touch-icon" href="{{ asset('favicon.svg?v=2') }}">
 
         <!-- Scripts -->
         @php($viteManifest = public_path('build/manifest.json'))

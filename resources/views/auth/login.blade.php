@@ -4,7 +4,7 @@
             width: 60px;
             height: 60px;
             border-radius: 18px;
-            background: url('{{ asset('favicon.svg') }}') center center / cover no-repeat, linear-gradient(135deg, #0ea5e9, #2563eb);
+            background: url('{{ asset('favicon.svg?v=2') }}') center center / 90% 90% no-repeat, linear-gradient(135deg, #0ea5e9, #2563eb);
             box-shadow: 0 24px 40px -24px rgba(37,99,235,0.45);
             margin-bottom: 1rem;
         }

@@ -13,9 +13,9 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-        <link rel="shortcut icon" href="{{ asset('favicon.svg') }}">
-        <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}">
+        <link rel="icon" type="image/svg+xml" sizes="any" href="{{ asset('favicon.svg?v=2') }}">
+        <link rel="shortcut icon" href="{{ asset('favicon.svg?v=2') }}">
+        <link rel="apple-touch-icon" href="{{ asset('favicon.svg?v=2') }}">
 
         @php($viteManifest = public_path('build/manifest.json'))
         @if (file_exists($viteManifest))
