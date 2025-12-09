@@ -7,6 +7,8 @@
 
     <title>{{ config('app.name', 'CoffeeChat OS') }} — Admin</title>
 
+    @include('layouts.partials.analytics')
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css">
 </head>
