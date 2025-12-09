@@ -50,6 +50,10 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', rtrim(env('APP_URL', config('app.url')), '/').'/auth/google/callback'),
     ],
 
+    'google_analytics' => [
+        'measurement_id' => env('GOOGLE_ANALYTICS_MEASUREMENT_ID'),
+    ],
+
     'linkedin' => [
         'client_id' => env('LINKEDIN_CLIENT_ID'),
         'client_secret' => env('LINKEDIN_CLIENT_SECRET'),

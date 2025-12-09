@@ -60,11 +60,13 @@
         <meta name="twitter:card" content="{{ $twitterCard }}">
         <meta name="twitter:title" content="{{ $ogTitle }}">
         @if($ogDescription)
-            <meta name="twitter:description" content="{{ $ogDescription }}">
+        <meta name="twitter:description" content="{{ $ogDescription }}">
         @endif
         @if($ogImage)
             <meta name="twitter:image" content="{{ $ogImage }}">
         @endif
+
+        @include('layouts.partials.analytics')
 
         @foreach($metaTags as $tag)
             @php
