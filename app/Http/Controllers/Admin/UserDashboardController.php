@@ -32,7 +32,7 @@ class UserDashboardController extends Controller
 
         $topSources = MarketingTouchpoint::query()
             ->whereNotNull('user_id')
-            ->selectRaw('COALESCE(source, "direct") as source, COALESCE(medium, "none") as medium, count(*) as total')
+            ->selectRaw("COALESCE(source, 'direct') as source, COALESCE(medium, 'none') as medium, count(*) as total")
             ->groupBy('source', 'medium')
             ->orderByDesc('total')
             ->limit(10)
