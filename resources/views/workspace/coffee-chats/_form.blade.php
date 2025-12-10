@@ -14,6 +14,11 @@
         gap: 1rem;
         margin-bottom: 0.35rem;
     }
+    @media (max-width: 992px) {
+        .form-section-heading {
+            flex-direction: column;
+        }
+    }
     .section-eyebrow {
         display: inline-flex;
         align-items: center;
@@ -27,6 +32,9 @@
         text-transform: uppercase;
         font-weight: 700;
         margin-bottom: 0.3rem;
+    }
+    .section-title + .text-subtle {
+        margin-top: 0.1rem;
     }
     .section-title {
         margin: 0;
@@ -44,7 +52,7 @@
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
-        padding: 0.62rem 1rem;
+        padding: 0.54rem 0.95rem;
         border-radius: 999px;
         border: 1px solid rgba(148,163,184,0.28);
         background: rgba(255,255,255,0.96);
@@ -53,6 +61,7 @@
         cursor: pointer;
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 12px 28px -22px rgba(15,23,42,0.35);
         transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+        min-height: 44px;
     }
     .pill input {
         position: absolute;
@@ -96,6 +105,12 @@
     }
     .soft-fade {
         opacity: 0.82;
+    }
+    .form-check-inline-tight {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-top: 0.2rem;
     }
 </style>
 
@@ -331,9 +346,15 @@
                             @break
 
                         @case('boolean')
-                            <div class="form-check">
+                            @php
+                                $checkboxLabel = $field->placeholder ?? 'Yes';
+                                if (trim(strtolower($checkboxLabel)) === trim(strtolower($field->label))) {
+                                    $checkboxLabel = 'Yes';
+                                }
+                            @endphp
+                            <div class="form-check form-check-inline-tight">
                                 <input class="form-check-input" type="checkbox" id="{{ $name }}" name="{{ $name }}" value="1" @checked($current)>
-                                <label class="form-check-label" for="{{ $name }}">{{ $field->placeholder ?? 'Yes' }}</label>
+                                <label class="form-check-label" for="{{ $name }}">{{ $checkboxLabel }}</label>
                             </div>
                             @break
 
