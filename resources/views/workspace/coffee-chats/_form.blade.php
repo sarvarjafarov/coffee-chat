@@ -145,7 +145,9 @@
                 <span>Rating (1-5)</span>
                 <span class="text-subtle small">1 = not helpful, 5 = great</span>
             </label>
-            @php($currentRating = (int) old('rating', $chat->rating))
+            @php
+                $currentRating = (int) old('rating', $chat->rating);
+            @endphp
             <div class="pill-group pill-group--tight" data-pill-group data-rating-group>
                 @for($i = 1; $i <= 5; $i++)
                     <label class="pill">
