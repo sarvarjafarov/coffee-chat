@@ -45,14 +45,14 @@
     .pill-group {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.55rem;
+        gap: 0.45rem;
     }
     .pill {
         position: relative;
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
-        padding: 0.54rem 0.95rem;
+        padding: 0.5rem 0.85rem;
         border-radius: 999px;
         border: 1px solid rgba(148,163,184,0.28);
         background: rgba(255,255,255,0.96);
@@ -90,6 +90,9 @@
         border-radius: 50%;
         background: rgba(148,163,184,0.6);
     }
+    .pill-label {
+        font-size: 0.95rem;
+    }
     .pill-group--tight .pill {
         padding: 0.5rem 0.8rem;
     }
@@ -112,6 +115,9 @@
         gap: 0.5rem;
         padding-top: 0.2rem;
     }
+    .workspace-form .form-label {
+        margin-bottom: 0.2rem;
+    }
 </style>
 
 <div class="workspace-form-section-block">
@@ -119,12 +125,11 @@
         <div>
             <div class="section-eyebrow">Conversation</div>
             <p class="section-title mb-1">Status & logistics</p>
-            <p class="text-subtle small mb-0" data-status-hint>Keep status, time, and rating front-and-center.</p>
+            <p class="text-subtle small mb-0" data-status-hint>Keep status, time, and rating front-and-center. Mark a chat Completed when you are ready to rate and summarize.</p>
         </div>
-        <span class="text-subtle small">Mark a chat Completed when you are ready to rate and summarize.</span>
     </div>
 
-    <div class="row g-3 align-items-end">
+    <div class="row g-3 align-items-center">
         <div class="col-lg-5">
             <label class="form-label">Status</label>
             <div class="pill-group" data-pill-group>
@@ -145,8 +150,8 @@
         </div>
         <div class="col-lg-3">
             <label class="form-label">Time zone</label>
-            <input type="text" name="time_zone" class="form-control" value="{{ old('time_zone', $chat->time_zone) }}" placeholder="Auto-detect or type (e.g. PST)">
-            <small class="text-subtle">Defaults to your profile time zone.</small>
+            <input type="text" name="time_zone" class="form-control" value="{{ old('time_zone', $chat->time_zone) }}" placeholder="e.g. PST">
+            <small class="text-subtle">Auto-detects from your profile.</small>
         </div>
         <div class="col-md-3">
             <label class="form-label d-flex justify-content-between">
@@ -155,11 +160,8 @@
             </label>
             <input type="number" name="duration_minutes" class="form-control" value="{{ old('duration_minutes', $chat->duration_minutes) }}" min="5" max="480">
         </div>
-        <div class="col-md-4">
-            <label class="form-label d-flex justify-content-between">
-                <span>Rating (1-5)</span>
-                <span class="text-subtle small">1 = not helpful, 5 = great</span>
-            </label>
+        <div class="col-md-5">
+            <label class="form-label">Rating (1-5)</label>
             @php
                 $currentRating = (int) old('rating', $chat->rating);
             @endphp
@@ -171,16 +173,16 @@
                     </label>
                 @endfor
             </div>
-            <small class="text-subtle">Add when the chat is complete.</small>
+            <small class="text-subtle">1 = not helpful, 5 = great. Add when the chat is complete.</small>
         </div>
-        <div class="col-md-5">
+        <div class="col-md-4">
             <div class="form-check mb-1">
                 <input class="form-check-input" type="checkbox" name="is_virtual" value="1" id="is_virtual" @checked(old('is_virtual', $chat->is_virtual))>
                 <label class="form-check-label" for="is_virtual">Virtual meeting</label>
             </div>
             <small class="text-subtle">Toggle off for in-person chats.</small>
         </div>
-        <div class="col-md-7">
+        <div class="col-12">
             <label class="form-label" data-location-label>Location / link</label>
             <input type="text" name="location" class="form-control" value="{{ old('location', $chat->location) }}" data-location-input>
             <small class="text-subtle" data-location-helper>Share a Meet/Zoom link or a short venue name.</small>
